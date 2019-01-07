@@ -1,0 +1,25 @@
+{
+  "name": "bettertypetool",
+  "version": "0.1.0",
+  "engines": {
+    "sketch": ">=3.0"
+  },
+  "skpm": {
+    "name": "betterTypeTool",
+    "manifest": "src/manifest.json",
+    "main": "bettertypetool.sketchplugin",
+    "assets": [
+      "assets/**/*"
+    ]
+  },
+  "scripts": {
+    "build": "skpm-build",
+    "watch": "skpm-build --watch",
+    "start": "skpm-build --watch --run",
+    "postinstall": "npm run build && skpm-link"
+  },
+  "devDependencies": {
+    "@skpm/builder": "^0.5.11"
+  },
+  "author": "Kevin Gutowski <kgutowski@berkeley.edu>"
+}

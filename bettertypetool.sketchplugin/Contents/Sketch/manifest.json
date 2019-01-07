@@ -1,0 +1,25 @@
+{
+  "compatibleVersion": 3,
+  "bundleVersion": 1,
+  "icon": "icon.png",
+  "commands": [
+    {
+      "name": "my-command",
+      "identifier": "my-command-identifier",
+      "script": "my-command.js"
+    }
+  ],
+  "menu": {
+    "title": "betterTypeTool",
+    "items": [
+      "my-command-identifier"
+    ]
+  },
+  "version": "0.1.0",
+  "name": "betterTypeTool",
+  "identifier": "betterTypeTool",
+  "disableCocoaScriptPreprocessor": true,
+  "appcast": "https://raw.githubusercontent.com//master/.appcast.xml",
+  "author": "Kevin Gutowski",
+  "authorEmail": "kgutowski@berkeley.edu"
+}
