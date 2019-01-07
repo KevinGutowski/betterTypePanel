@@ -216,6 +216,7 @@ function setupPanel(threadDictionary, identifier) {
     frame: NSMakeRect(0, 0, column1width, 17),
     alignment: NSTextAlignmentRight
   });
+  numberSpacingLabel.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(numberSpacingLabel, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, column1width));
   var radioButtonProportional = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 97, 18));
   radioButtonProportional.setButtonType(NSRadioButton);
   radioButtonProportional.setTitle('Proportional');
@@ -263,6 +264,7 @@ function setupPanel(threadDictionary, identifier) {
 
   var numberCaseTargetFunction = function numberCaseTargetFunction(sender) {
     console.log(sender.title() + ' radio button was clicked');
+    console.log(sender.state());
   };
 
   radioButtonLiningFigures.setCOSJSTargetFunction(function (sender) {
@@ -295,8 +297,18 @@ function setupPanel(threadDictionary, identifier) {
   });
   var pushOnOffButtonLowerCase = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 72, 32));
   pushOnOffButtonLowerCase.setButtonType(NSButtonTypeOnOff);
+  pushOnOffButtonLowerCase.setBezelStyle(NSRoundedBezelStyle);
   pushOnOffButtonLowerCase.setTitle('Tt');
   pushOnOffButtonLowerCase.setState(NSOffState);
+  pushOnOffButtonLowerCase.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(pushOnOffButtonLowerCase, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, 60));
+
+  var smallCapsLowerCaseTargetFunction = function smallCapsLowerCaseTargetFunction(sender) {
+    console.log(sender.title() + ' toggle was clicked');
+  };
+
+  pushOnOffButtonLowerCase.setCOSJSTargetFunction(function (sender) {
+    return smallCapsLowerCaseTargetFunction(sender);
+  });
   var lowerCaseLabel = createTextField({
     text: "Lower Case",
     frame: NSMakeRect(0, 0, 65, 14),
@@ -304,13 +316,24 @@ function setupPanel(threadDictionary, identifier) {
     fontSize: 11
   });
   var lowerCaseStackView = NSStackView.stackViewWithViews([pushOnOffButtonLowerCase, lowerCaseLabel]);
-  numberCaseRadioGroupStackView.setOrientation(NSUserInterfaceLayoutOrientationVertical);
-  numberCaseRadioGroupStackView.setSpacing(4);
-  numberCaseRadioGroupStackView.setTranslatesAutoresizingMaskIntoConstraints(false);
+  lowerCaseStackView.setOrientation(NSUserInterfaceLayoutOrientationVertical);
+  lowerCaseStackView.setAlignment(NSLayoutAttributeCenterX);
+  lowerCaseStackView.setSpacing(4);
+  lowerCaseStackView.setTranslatesAutoresizingMaskIntoConstraints(false);
   var pushOnOffButtonUpperCase = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 72, 32));
   pushOnOffButtonUpperCase.setButtonType(NSButtonTypeOnOff);
+  pushOnOffButtonUpperCase.setBezelStyle(NSRoundedBezelStyle);
   pushOnOffButtonUpperCase.setTitle('Tt');
   pushOnOffButtonUpperCase.setState(NSOffState);
+  pushOnOffButtonUpperCase.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(pushOnOffButtonUpperCase, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, 60));
+
+  var smallCapsUpperCaseTargetFunction = function smallCapsUpperCaseTargetFunction(sender) {
+    console.log(sender.title() + ' toggle was clicked');
+  };
+
+  pushOnOffButtonUpperCase.setCOSJSTargetFunction(function (sender) {
+    return smallCapsUpperCaseTargetFunction(sender);
+  });
   var upperCaseLabel = createTextField({
     text: "Upper Case",
     frame: NSMakeRect(0, 0, 66, 14),
@@ -318,12 +341,13 @@ function setupPanel(threadDictionary, identifier) {
     fontSize: 11
   });
   var upperCaseStackView = NSStackView.stackViewWithViews([pushOnOffButtonUpperCase, upperCaseLabel]);
-  numberCaseRadioGroupStackView.setOrientation(NSUserInterfaceLayoutOrientationVertical);
-  numberCaseRadioGroupStackView.setSpacing(4);
-  numberCaseRadioGroupStackView.setTranslatesAutoresizingMaskIntoConstraints(false);
-  var smallCapsButtonGroupStackView = NSStackView.stackViewWithViews([smallCapsLabel, lowerCaseStackView, upperCaseStackView]);
+  upperCaseStackView.setOrientation(NSUserInterfaceLayoutOrientationVertical);
+  upperCaseStackView.setSpacing(4);
+  upperCaseStackView.setTranslatesAutoresizingMaskIntoConstraints(false);
+  var smallCapsButtonGroupStackView = NSStackView.stackViewWithViews([smallCapsExampleLabel, lowerCaseStackView, upperCaseStackView]);
   smallCapsButtonGroupStackView.setOrientation(NSUserInterfaceLayoutOrientationHorizontal);
   smallCapsButtonGroupStackView.setAlignment(NSLayoutAttributeFirstBaseline);
+  smallCapsButtonGroupStackView.setSpacing(4);
   smallCapsButtonGroupStackView.setTranslatesAutoresizingMaskIntoConstraints(false);
   var row4 = NSStackView.alloc().initWithFrame(NSMakeRect(0, 0, mainViewWidth, 36));
   row4.setOrientation(NSUserInterfaceLayoutOrientationHorizontal);
@@ -334,6 +358,7 @@ function setupPanel(threadDictionary, identifier) {
   var mainContentView = NSStackView.stackViewWithViews([row1, row2, row3, row4]);
   mainContentView.setOrientation(NSUserInterfaceLayoutOrientationVertical);
   mainContentView.setAlignment(NSLayoutAttributeLeading);
+  mainContentView.setSpacing(8);
   mainContentView.setTranslatesAutoresizingMaskIntoConstraints(false);
   panel.contentView().addSubview(mainContentView);
   panel.contentView().setFlipped(true);
@@ -383,7 +408,7 @@ function createTextField(_ref) {
   label.setAlignment(alignment);
   label.setFont(NSFont.systemFontOfSize(fontSize));
   label.setBezeled(false);
-  label.setDrawsBackground(true);
+  label.setDrawsBackground(false);
   label.setEditable(false);
   label.setSelectable(false);
   return label;

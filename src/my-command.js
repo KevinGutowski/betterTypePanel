@@ -9,14 +9,14 @@ export default function() {
 
     framework("CoreText");
     const document = sketch.getSelectedDocument();
-    const textLayer = document.selectedLayers.layers[0];
+    const textLayer = document.selectedLayers.layers[0]
     const font = textLayer.sketchObject.font()
     const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), nil);
-    const features = CTFontCopyFeatures(coreTextFont);
+    const features = CTFontCopyFeatures(coreTextFont)
     const settings = CTFontCopyFeatureSettings(coreTextFont)
 
-    var main = HSMain.alloc().init();
-    var featuresArray = main.bridgeArray(features);
+    var main = HSMain.alloc().init()
+    var featuresArray = main.bridgeArray(features)
     var settingsArray = main.bridgeArray(settings)
 
     //determineProps(featuresArray);
@@ -143,6 +143,16 @@ function setupPanel(threadDictionary, identifier) {
         alignment: NSTextAlignmentRight
     })
 
+    numberSpacingLabel.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(
+        numberSpacingLabel,
+        NSLayoutAttributeWidth,
+        NSLayoutRelationEqual,
+        nil,
+        NSLayoutAttributeNotAnAttribute,
+        1.0,
+        column1width
+    ))
+
     let radioButtonProportional = NSButton.alloc().initWithFrame(NSMakeRect(0,0,97,18))
     radioButtonProportional.setButtonType(NSRadioButton)
     radioButtonProportional.setTitle('Proportional')
@@ -201,6 +211,14 @@ function setupPanel(threadDictionary, identifier) {
 
     let numberCaseTargetFunction = (sender) => {
         console.log(sender.title() + ' radio button was clicked')
+        console.log(sender.state())
+        var currentFontProperties = getCurrentFontProperties()
+
+        if (sender.title() == "Old-style figures") {
+
+        } else {
+
+        }
     }
 
     radioButtonLiningFigures.setCOSJSTargetFunction(sender => numberCaseTargetFunction(sender))
@@ -243,8 +261,24 @@ function setupPanel(threadDictionary, identifier) {
 
     var pushOnOffButtonLowerCase = NSButton.alloc().initWithFrame(NSMakeRect(0,0,72,32))
     pushOnOffButtonLowerCase.setButtonType(NSButtonTypeOnOff)
+    pushOnOffButtonLowerCase.setBezelStyle(NSRoundedBezelStyle)
     pushOnOffButtonLowerCase.setTitle('Tt')
     pushOnOffButtonLowerCase.setState(NSOffState)
+
+    pushOnOffButtonLowerCase.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(
+        pushOnOffButtonLowerCase,
+        NSLayoutAttributeWidth,
+        NSLayoutRelationEqual,
+        nil,
+        NSLayoutAttributeNotAnAttribute,
+        1.0,
+        60
+    ))
+
+    let smallCapsLowerCaseTargetFunction = (sender) => {
+        console.log(sender.title() + ' toggle was clicked')
+    }
+    pushOnOffButtonLowerCase.setCOSJSTargetFunction(sender => smallCapsLowerCaseTargetFunction(sender))
 
     var lowerCaseLabel = createTextField({
         text: "Lower Case",
@@ -254,14 +288,31 @@ function setupPanel(threadDictionary, identifier) {
     })
 
     var lowerCaseStackView = NSStackView.stackViewWithViews([pushOnOffButtonLowerCase,lowerCaseLabel])
-    numberCaseRadioGroupStackView.setOrientation(NSUserInterfaceLayoutOrientationVertical)
-    numberCaseRadioGroupStackView.setSpacing(4)
-    numberCaseRadioGroupStackView.setTranslatesAutoresizingMaskIntoConstraints(false)
+    lowerCaseStackView.setOrientation(NSUserInterfaceLayoutOrientationVertical)
+    lowerCaseStackView.setAlignment(NSLayoutAttributeCenterX)
+    lowerCaseStackView.setSpacing(4)
+    lowerCaseStackView.setTranslatesAutoresizingMaskIntoConstraints(false)
 
     var pushOnOffButtonUpperCase = NSButton.alloc().initWithFrame(NSMakeRect(0,0,72,32))
     pushOnOffButtonUpperCase.setButtonType(NSButtonTypeOnOff)
+    pushOnOffButtonUpperCase.setBezelStyle(NSRoundedBezelStyle)
     pushOnOffButtonUpperCase.setTitle('Tt')
     pushOnOffButtonUpperCase.setState(NSOffState)
+
+    pushOnOffButtonUpperCase.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(
+        pushOnOffButtonUpperCase,
+        NSLayoutAttributeWidth,
+        NSLayoutRelationEqual,
+        nil,
+        NSLayoutAttributeNotAnAttribute,
+        1.0,
+        60
+    ))
+
+    let smallCapsUpperCaseTargetFunction = (sender) => {
+        console.log(sender.title() + ' toggle was clicked')
+    }
+    pushOnOffButtonUpperCase.setCOSJSTargetFunction(sender => smallCapsUpperCaseTargetFunction(sender))
 
     var upperCaseLabel = createTextField({
         text: "Upper Case",
@@ -271,13 +322,14 @@ function setupPanel(threadDictionary, identifier) {
     })
 
     var upperCaseStackView = NSStackView.stackViewWithViews([pushOnOffButtonUpperCase,upperCaseLabel])
-    numberCaseRadioGroupStackView.setOrientation(NSUserInterfaceLayoutOrientationVertical)
-    numberCaseRadioGroupStackView.setSpacing(4)
-    numberCaseRadioGroupStackView.setTranslatesAutoresizingMaskIntoConstraints(false)
+    upperCaseStackView.setOrientation(NSUserInterfaceLayoutOrientationVertical)
+    upperCaseStackView.setSpacing(4)
+    upperCaseStackView.setTranslatesAutoresizingMaskIntoConstraints(false)
 
-    var smallCapsButtonGroupStackView = NSStackView.stackViewWithViews([smallCapsLabel,lowerCaseStackView,upperCaseStackView])
+    var smallCapsButtonGroupStackView = NSStackView.stackViewWithViews([smallCapsExampleLabel,lowerCaseStackView,upperCaseStackView])
     smallCapsButtonGroupStackView.setOrientation(NSUserInterfaceLayoutOrientationHorizontal)
     smallCapsButtonGroupStackView.setAlignment(NSLayoutAttributeFirstBaseline)
+    smallCapsButtonGroupStackView.setSpacing(4)
     smallCapsButtonGroupStackView.setTranslatesAutoresizingMaskIntoConstraints(false)
 
     var row4 = NSStackView.alloc().initWithFrame(NSMakeRect(0,0,mainViewWidth,36))
@@ -290,6 +342,7 @@ function setupPanel(threadDictionary, identifier) {
     var mainContentView = NSStackView.stackViewWithViews([row1,row2,row3, row4])
     mainContentView.setOrientation(NSUserInterfaceLayoutOrientationVertical)
     mainContentView.setAlignment(NSLayoutAttributeLeading)
+    mainContentView.setSpacing(8)
     mainContentView.setTranslatesAutoresizingMaskIntoConstraints(false)
 
     panel.contentView().addSubview(mainContentView)
@@ -350,9 +403,17 @@ function createTextField({text, frame, alignment, fontSize = 13}) {
     label.setAlignment(alignment)
     label.setFont(NSFont.systemFontOfSize(fontSize))
     label.setBezeled(false)
-    label.setDrawsBackground(true)
+    label.setDrawsBackground(false)
     label.setEditable(false)
     label.setSelectable(false)
     return label
+}
+
+function getCurrentFontProperties() {
+    var document = sketch.getSelectedDocument();
+    var textLayer = document.selectedLayers.layers[0]
+    var font = textLayer.sketchObject.font()
+    var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+    return fontFeatureSettings
 }
 
