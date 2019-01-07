@@ -117,8 +117,7 @@ __webpack_require__.r(__webpack_exports__);
   var settings = CTFontCopyFeatureSettings(coreTextFont);
   var main = HSMain.alloc().init();
   var featuresArray = main.bridgeArray(features);
-  var settingsArray = main.bridgeArray(settings);
-  console.log(settingsArray); //determineProps(featuresArray);
+  var settingsArray = main.bridgeArray(settings); //determineProps(featuresArray);
 
   console.log("Hello Finish");
 });
@@ -193,7 +192,7 @@ function setupPanel(threadDictionary, identifier) {
   var verticalPositionLabel = createTextField({
     text: "Vertical Position:",
     frame: NSMakeRect(0, 0, column1width, 17),
-    alignment: NSRightTextAlignment
+    alignment: NSTextAlignmentRight
   });
   verticalPositionLabel.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(verticalPositionLabel, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, column1width));
   var verticalPositionPopupButton = NSPopUpButton.alloc().initWithFrame(NSMakeRect(0, 0, 150, 25));
@@ -215,7 +214,7 @@ function setupPanel(threadDictionary, identifier) {
   var numberSpacingLabel = createTextField({
     text: "Number Spacing:",
     frame: NSMakeRect(0, 0, column1width, 17),
-    alignment: NSRightTextAlignment
+    alignment: NSTextAlignmentRight
   });
   var radioButtonProportional = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 97, 18));
   radioButtonProportional.setButtonType(NSRadioButton);
@@ -250,7 +249,7 @@ function setupPanel(threadDictionary, identifier) {
   var numberCaseLabel = createTextField({
     text: "Number Case:",
     frame: NSMakeRect(0, 0, column1width, 17),
-    alignment: NSRightTextAlignment
+    alignment: NSTextAlignmentRight
   });
   numberCaseLabel.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(numberCaseLabel, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, column1width));
   var radioButtonLiningFigures = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 104, 17));
@@ -281,9 +280,58 @@ function setupPanel(threadDictionary, identifier) {
   row3.setOrientation(NSUserInterfaceLayoutOrientationHorizontal);
   row3.setAlignment(NSLayoutAttributeFirstBaseline);
   row3.setSpacing(columnSpacing);
-  row3.setViews_inGravity([numberCaseLabel, numberCaseRadioGroupStackView], NSStackViewGravityLeading); // MARK: Combine rows together
+  row3.setViews_inGravity([numberCaseLabel, numberCaseRadioGroupStackView], NSStackViewGravityLeading); // MARK: Setup Row 4
 
-  var mainContentView = NSStackView.stackViewWithViews([row1, row3, row2]);
+  var smallCapsLabel = createTextField({
+    text: "Small Caps:",
+    frame: NSMakeRect(0, 0, column1width, 17),
+    alignment: NSTextAlignmentRight
+  });
+  smallCapsLabel.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(smallCapsLabel, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, column1width));
+  var smallCapsExampleLabel = createTextField({
+    text: "Tt →",
+    frame: NSMakeRect(0, 0, 32, 17),
+    alignment: NSTextAlignmentLeft
+  });
+  var pushOnOffButtonLowerCase = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 72, 32));
+  pushOnOffButtonLowerCase.setButtonType(NSButtonTypeOnOff);
+  pushOnOffButtonLowerCase.setTitle('Tt');
+  pushOnOffButtonLowerCase.setState(NSOffState);
+  var lowerCaseLabel = createTextField({
+    text: "Lower Case",
+    frame: NSMakeRect(0, 0, 65, 14),
+    alignment: NSTextAlignmentCenter,
+    fontSize: 11
+  });
+  var lowerCaseStackView = NSStackView.stackViewWithViews([pushOnOffButtonLowerCase, lowerCaseLabel]);
+  numberCaseRadioGroupStackView.setOrientation(NSUserInterfaceLayoutOrientationVertical);
+  numberCaseRadioGroupStackView.setSpacing(4);
+  numberCaseRadioGroupStackView.setTranslatesAutoresizingMaskIntoConstraints(false);
+  var pushOnOffButtonUpperCase = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 72, 32));
+  pushOnOffButtonUpperCase.setButtonType(NSButtonTypeOnOff);
+  pushOnOffButtonUpperCase.setTitle('Tt');
+  pushOnOffButtonUpperCase.setState(NSOffState);
+  var upperCaseLabel = createTextField({
+    text: "Upper Case",
+    frame: NSMakeRect(0, 0, 66, 14),
+    alignment: NSTextAlignmentCenter,
+    fontSize: 11
+  });
+  var upperCaseStackView = NSStackView.stackViewWithViews([pushOnOffButtonUpperCase, upperCaseLabel]);
+  numberCaseRadioGroupStackView.setOrientation(NSUserInterfaceLayoutOrientationVertical);
+  numberCaseRadioGroupStackView.setSpacing(4);
+  numberCaseRadioGroupStackView.setTranslatesAutoresizingMaskIntoConstraints(false);
+  var smallCapsButtonGroupStackView = NSStackView.stackViewWithViews([smallCapsLabel, lowerCaseStackView, upperCaseStackView]);
+  smallCapsButtonGroupStackView.setOrientation(NSUserInterfaceLayoutOrientationHorizontal);
+  smallCapsButtonGroupStackView.setAlignment(NSLayoutAttributeFirstBaseline);
+  smallCapsButtonGroupStackView.setTranslatesAutoresizingMaskIntoConstraints(false);
+  var row4 = NSStackView.alloc().initWithFrame(NSMakeRect(0, 0, mainViewWidth, 36));
+  row4.setOrientation(NSUserInterfaceLayoutOrientationHorizontal);
+  row4.setAlignment(NSLayoutAttributeFirstBaseline);
+  row4.setSpacing(columnSpacing);
+  row4.setViews_inGravity([smallCapsLabel, smallCapsButtonGroupStackView], NSStackViewGravityLeading); // MARK: Combine rows together
+
+  var mainContentView = NSStackView.stackViewWithViews([row1, row2, row3, row4]);
   mainContentView.setOrientation(NSUserInterfaceLayoutOrientationVertical);
   mainContentView.setAlignment(NSLayoutAttributeLeading);
   mainContentView.setTranslatesAutoresizingMaskIntoConstraints(false);
@@ -324,16 +372,16 @@ function addEdgeConstraint(layoutAttribute, subview, view, constant) {
   view.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(subview, layoutAttribute, NSLayoutRelationEqual, view, layoutAttribute, 1.0, constant));
 }
 
-function addMainControls(superview) {}
-
 function createTextField(_ref) {
   var text = _ref.text,
       frame = _ref.frame,
-      alignment = _ref.alignment;
+      alignment = _ref.alignment,
+      _ref$fontSize = _ref.fontSize,
+      fontSize = _ref$fontSize === void 0 ? 13 : _ref$fontSize;
   var label = NSTextField.alloc().initWithFrame(frame);
   label.setStringValue(text);
   label.setAlignment(alignment);
-  label.setFont(NSFont.systemFontOfSize(13));
+  label.setFont(NSFont.systemFontOfSize(fontSize));
   label.setBezeled(false);
   label.setDrawsBackground(true);
   label.setEditable(false);
