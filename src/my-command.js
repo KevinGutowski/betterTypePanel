@@ -53,13 +53,7 @@ function setupFramework() {
 }
 
 function determineProps(featuresArray) {
-    console.log(feature);
-    for (var i = 0; i < featuresArray.count(); i++) {
-        var feature = featuresArray[i];
-        if (feature['CTFeatureTypeIdentifier'] == 37) {
-            console.log(feature['CTFeatureTypeSelectors']);
-        }
-    }
+
 }
 
 function runPanel() {
@@ -80,7 +74,7 @@ function setupPanel(threadDictionary, identifier) {
     panel.setFrame_display(NSMakeRect(0, 0, panelWidth, panelHeight), true)
     panel.setStyleMask(NSTexturedBackgroundWindowMask | NSTitledWindowMask | NSClosableWindowMask)
     // panel.setBackgroundColor(NSColor.whiteColor());
-    panel.title = "betterTypePanel2"
+    panel.title = "betterTypePanel"
 
     panel.center()
     panel.makeKeyAndOrderFront(null)
@@ -126,6 +120,67 @@ function setupPanel(threadDictionary, identifier) {
 
     let verticalPositionTargetFuntion = (sender) => {
         console.log(sender.title() + ' dropdown button was selected')
+        // Vertical Position
+        // ID: kVerticalPositionType
+        //
+        // Selectors
+        //
+        // kNormalPositionSelector
+        // This is the default. It means to display the text with no vertical displacement.
+        //
+        // kSuperiorsSelector
+        // Changes any characters having superior forms in the font into those forms.
+        //
+        // kInferiorsSelector
+        // Changes any characters having inferior forms in the font into those forms.
+        //
+        // kOrdinalsSelector
+        // Contextually changes certain letters into their superior forms, like in Spanish changing from 1a to 1ª.
+        //
+        // kScientificInferiorsSelector
+        // Changes any characters having them into inferior forms designed for a technical context (as in H2O).
+        //
+        if (sender.title() == 'Superscript') {
+            let settingsAttribute = {
+                [NSFontFeatureSettingsAttribute]: [{
+                    [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
+                    [NSFontFeatureSelectorIdentifierKey]: kSuperiorsSelector
+                }]
+            }
+            updateFontFeatureSettingsAttribute(settingsAttribute)
+        } else if (sender.title() == 'Subscript') {
+            let settingsAttribute = {
+                [NSFontFeatureSettingsAttribute]: [{
+                    [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
+                    [NSFontFeatureSelectorIdentifierKey]: kInferiorsSelector
+                }]
+            }
+            updateFontFeatureSettingsAttribute(settingsAttribute)
+        } else if (sender.title() == 'Ordinals') {
+            let settingsAttribute = {
+                [NSFontFeatureSettingsAttribute]: [{
+                    [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
+                    [NSFontFeatureSelectorIdentifierKey]: kOrdinalsSelector
+                }]
+            }
+            updateFontFeatureSettingsAttribute(settingsAttribute)
+        } else if (sender.title() == 'Scientific Notiation') {
+            let settingsAttribute = {
+                [NSFontFeatureSettingsAttribute]: [{
+                    [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
+                    [NSFontFeatureSelectorIdentifierKey]: kOrdinalsSelector
+                }]
+            }
+            updateFontFeatureSettingsAttribute(settingsAttribute)
+        } else {
+            let settingsAttribute = {
+                [NSFontFeatureSettingsAttribute]: [{
+                    [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
+                    [NSFontFeatureSelectorIdentifierKey]: kNormalPositionSelector
+                }]
+            }
+            updateFontFeatureSettingsAttribute(settingsAttribute)
+        }
     }
 
     verticalPositionPopupButton.setCOSJSTargetFunction(sender => verticalPositionTargetFuntion(sender))
@@ -277,6 +332,36 @@ function setupPanel(threadDictionary, identifier) {
 
     let smallCapsLowerCaseTargetFunction = (sender) => {
         console.log(sender.title() + ' toggle was clicked')
+        // Small Caps Lower Case
+        // ID: kLowerCaseType
+        //
+        // SELECTORS
+        // kDefaultLowerCaseSelector = 0
+        // Use standard lower-case glyphs
+        //
+        // kLowerCaseSmallCapsSelector = 1
+        // Display lower-case glyphs as small caps. (This is the most common way of displaying small caps.)
+        //
+        // kLowerCasePetiteCapsSelector = 2
+        // Display lower-case glyphs as petite caps
+        //
+        if (sender.state() == 0) {
+            let settingsAttribute = {
+                [NSFontFeatureSettingsAttribute]: [{
+                    [NSFontFeatureTypeIdentifierKey]: kLowerCaseType,
+                    [NSFontFeatureSelectorIdentifierKey]: kDefaultLowerCaseSelector
+                }]
+            }
+            updateFontFeatureSettingsAttribute(settingsAttribute)
+        } else {
+            let settingsAttribute = {
+                [NSFontFeatureSettingsAttribute]: [{
+                    [NSFontFeatureTypeIdentifierKey]: kLowerCaseType,
+                    [NSFontFeatureSelectorIdentifierKey]: kLowerCaseSmallCapsSelector
+                }]
+            }
+            updateFontFeatureSettingsAttribute(settingsAttribute)
+        }
     }
     pushOnOffButtonLowerCase.setCOSJSTargetFunction(sender => smallCapsLowerCaseTargetFunction(sender))
 
@@ -311,6 +396,38 @@ function setupPanel(threadDictionary, identifier) {
 
     let smallCapsUpperCaseTargetFunction = (sender) => {
         console.log(sender.title() + ' toggle was clicked')
+        //Small Caps Upper Case
+        // ID: kUpperCaseType
+        //
+        // SELECTORS
+        //
+        // kDefaultUpperCaseSelector = 0
+        // Use standard upper-case glyphs
+        //
+        // kUpperCaseSmallCapsSelector = 1
+        // Display upper-case glyphs as small caps (used commonly with acronyms).
+        //
+        // kUpperCasePetiteCapsSelector = 2
+        // Display upper-case glyphs as petite caps
+        //
+        if (sender.state() == 0) {
+            //Need to set to default setting
+            let settingsAttribute = {
+                [NSFontFeatureSettingsAttribute]: [{
+                    [NSFontFeatureTypeIdentifierKey]: kUpperCaseType,
+                    [NSFontFeatureSelectorIdentifierKey]: kDefaultUpperCaseSelector
+                }]
+            }
+            updateFontFeatureSettingsAttribute(settingsAttribute)
+        } else {
+            let settingsAttribute = {
+                [NSFontFeatureSettingsAttribute]: [{
+                    [NSFontFeatureTypeIdentifierKey]: kUpperCaseType,
+                    [NSFontFeatureSelectorIdentifierKey]: kUpperCaseSmallCapsSelector
+                }]
+            }
+            updateFontFeatureSettingsAttribute(settingsAttribute)
+        }
     }
     pushOnOffButtonUpperCase.setCOSJSTargetFunction(sender => smallCapsUpperCaseTargetFunction(sender))
 
@@ -409,11 +526,16 @@ function createTextField({text, frame, alignment, fontSize = 13}) {
     return label
 }
 
-function getCurrentFontProperties() {
+function updateFontFeatureSettingsAttribute(settingsAttribute) {
     var document = sketch.getSelectedDocument();
     var textLayer = document.selectedLayers.layers[0]
     var font = textLayer.sketchObject.font()
+    var fontSize = font.pointSize()
     var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
-    return fontFeatureSettings
+    const descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute)
+
+    const newFont = NSFont.fontWithDescriptor_size(descriptor,fontSize)
+    textLayer.sketchObject.setFont(newFont)
+    document.sketchObject.inspectorController().reload()
 }
 

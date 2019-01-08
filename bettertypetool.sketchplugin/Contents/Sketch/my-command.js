@@ -147,17 +147,7 @@ function setupFramework() {
   })();
 }
 
-function determineProps(featuresArray) {
-  console.log(feature);
-
-  for (var i = 0; i < featuresArray.count(); i++) {
-    var feature = featuresArray[i];
-
-    if (feature['CTFeatureTypeIdentifier'] == 37) {
-      console.log(feature['CTFeatureTypeSelectors']);
-    }
-  }
-}
+function determineProps(featuresArray) {}
 
 function runPanel() {
   console.log("Setting Up Panel");
@@ -176,7 +166,7 @@ function setupPanel(threadDictionary, identifier) {
   panel.setFrame_display(NSMakeRect(0, 0, panelWidth, panelHeight), true);
   panel.setStyleMask(NSTexturedBackgroundWindowMask | NSTitledWindowMask | NSClosableWindowMask); // panel.setBackgroundColor(NSColor.whiteColor());
 
-  panel.title = "betterTypePanel2";
+  panel.title = "betterTypePanel";
   panel.center();
   panel.makeKeyAndOrderFront(null);
   panel.setLevel(NSFloatingWindowLevel);
@@ -199,7 +189,68 @@ function setupPanel(threadDictionary, identifier) {
   verticalPositionPopupButton.addItemsWithTitles(['Default Position', 'Superscript', 'Subscript', 'Ordinals', 'Scientific Notiation']);
 
   var verticalPositionTargetFuntion = function verticalPositionTargetFuntion(sender) {
-    console.log(sender.title() + ' dropdown button was selected');
+    console.log(sender.title() + ' dropdown button was selected'); // Vertical Position
+    // ID: kVerticalPositionType
+    //
+    // Selectors
+    //
+    // kNormalPositionSelector
+    // This is the default. It means to display the text with no vertical displacement.
+    //
+    // kSuperiorsSelector
+    // Changes any characters having superior forms in the font into those forms.
+    //
+    // kInferiorsSelector
+    // Changes any characters having inferior forms in the font into those forms.
+    //
+    // kOrdinalsSelector
+    // Contextually changes certain letters into their superior forms, like in Spanish changing from 1a to 1ª.
+    //
+    // kScientificInferiorsSelector
+    // Changes any characters having them into inferior forms designed for a technical context (as in H2O).
+    //
+
+    if (sender.title() == 'Superscript') {
+      var settingsAttribute = {
+        [NSFontFeatureSettingsAttribute]: [{
+          [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
+          [NSFontFeatureSelectorIdentifierKey]: kSuperiorsSelector
+        }]
+      };
+      updateFontFeatureSettingsAttribute(settingsAttribute);
+    } else if (sender.title() == 'Subscript') {
+      var _settingsAttribute = {
+        [NSFontFeatureSettingsAttribute]: [{
+          [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
+          [NSFontFeatureSelectorIdentifierKey]: kInferiorsSelector
+        }]
+      };
+      updateFontFeatureSettingsAttribute(_settingsAttribute);
+    } else if (sender.title() == 'Ordinals') {
+      var _settingsAttribute2 = {
+        [NSFontFeatureSettingsAttribute]: [{
+          [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
+          [NSFontFeatureSelectorIdentifierKey]: kOrdinalsSelector
+        }]
+      };
+      updateFontFeatureSettingsAttribute(_settingsAttribute2);
+    } else if (sender.title() == 'Scientific Notiation') {
+      var _settingsAttribute3 = {
+        [NSFontFeatureSettingsAttribute]: [{
+          [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
+          [NSFontFeatureSelectorIdentifierKey]: kOrdinalsSelector
+        }]
+      };
+      updateFontFeatureSettingsAttribute(_settingsAttribute3);
+    } else {
+      var _settingsAttribute4 = {
+        [NSFontFeatureSettingsAttribute]: [{
+          [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
+          [NSFontFeatureSelectorIdentifierKey]: kNormalPositionSelector
+        }]
+      };
+      updateFontFeatureSettingsAttribute(_settingsAttribute4);
+    }
   };
 
   verticalPositionPopupButton.setCOSJSTargetFunction(function (sender) {
@@ -265,6 +316,9 @@ function setupPanel(threadDictionary, identifier) {
   var numberCaseTargetFunction = function numberCaseTargetFunction(sender) {
     console.log(sender.title() + ' radio button was clicked');
     console.log(sender.state());
+    var currentFontProperties = getCurrentFontProperties();
+
+    if (sender.title() == "Old-style figures") {} else {}
   };
 
   radioButtonLiningFigures.setCOSJSTargetFunction(function (sender) {
@@ -303,7 +357,37 @@ function setupPanel(threadDictionary, identifier) {
   pushOnOffButtonLowerCase.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(pushOnOffButtonLowerCase, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, 60));
 
   var smallCapsLowerCaseTargetFunction = function smallCapsLowerCaseTargetFunction(sender) {
-    console.log(sender.title() + ' toggle was clicked');
+    console.log(sender.title() + ' toggle was clicked'); // Small Caps Lower Case
+    // ID: kLowerCaseType
+    //
+    // SELECTORS
+    // kDefaultLowerCaseSelector = 0
+    // Use standard lower-case glyphs
+    //
+    // kLowerCaseSmallCapsSelector = 1
+    // Display lower-case glyphs as small caps. (This is the most common way of displaying small caps.)
+    //
+    // kLowerCasePetiteCapsSelector = 2
+    // Display lower-case glyphs as petite caps
+    //
+
+    if (sender.state() == 0) {
+      var settingsAttribute = {
+        [NSFontFeatureSettingsAttribute]: [{
+          [NSFontFeatureTypeIdentifierKey]: kLowerCaseType,
+          [NSFontFeatureSelectorIdentifierKey]: kDefaultLowerCaseSelector
+        }]
+      };
+      updateFontFeatureSettingsAttribute(settingsAttribute);
+    } else {
+      var _settingsAttribute5 = {
+        [NSFontFeatureSettingsAttribute]: [{
+          [NSFontFeatureTypeIdentifierKey]: kLowerCaseType,
+          [NSFontFeatureSelectorIdentifierKey]: kLowerCaseSmallCapsSelector
+        }]
+      };
+      updateFontFeatureSettingsAttribute(_settingsAttribute5);
+    }
   };
 
   pushOnOffButtonLowerCase.setCOSJSTargetFunction(function (sender) {
@@ -328,7 +412,39 @@ function setupPanel(threadDictionary, identifier) {
   pushOnOffButtonUpperCase.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(pushOnOffButtonUpperCase, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, 60));
 
   var smallCapsUpperCaseTargetFunction = function smallCapsUpperCaseTargetFunction(sender) {
-    console.log(sender.title() + ' toggle was clicked');
+    console.log(sender.title() + ' toggle was clicked'); //Small Caps Upper Case
+    // ID: kUpperCaseType
+    //
+    // SELECTORS
+    //
+    // kDefaultUpperCaseSelector = 0
+    // Use standard upper-case glyphs
+    //
+    // kUpperCaseSmallCapsSelector = 1
+    // Display upper-case glyphs as small caps (used commonly with acronyms).
+    //
+    // kUpperCasePetiteCapsSelector = 2
+    // Display upper-case glyphs as petite caps
+    //
+
+    if (sender.state() == 0) {
+      //Need to set to default setting
+      var settingsAttribute = {
+        [NSFontFeatureSettingsAttribute]: [{
+          [NSFontFeatureTypeIdentifierKey]: kUpperCaseType,
+          [NSFontFeatureSelectorIdentifierKey]: kDefaultUpperCaseSelector
+        }]
+      };
+      updateFontFeatureSettingsAttribute(settingsAttribute);
+    } else {
+      var _settingsAttribute6 = {
+        [NSFontFeatureSettingsAttribute]: [{
+          [NSFontFeatureTypeIdentifierKey]: kUpperCaseType,
+          [NSFontFeatureSelectorIdentifierKey]: kUpperCaseSmallCapsSelector
+        }]
+      };
+      updateFontFeatureSettingsAttribute(_settingsAttribute6);
+    }
   };
 
   pushOnOffButtonUpperCase.setCOSJSTargetFunction(function (sender) {
@@ -412,6 +528,18 @@ function createTextField(_ref) {
   label.setEditable(false);
   label.setSelectable(false);
   return label;
+}
+
+function updateFontFeatureSettingsAttribute(settingsAttribute) {
+  var document = sketch__WEBPACK_IMPORTED_MODULE_0___default.a.getSelectedDocument();
+  var textLayer = document.selectedLayers.layers[0];
+  var font = textLayer.sketchObject.font();
+  var fontSize = font.pointSize();
+  var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
+  var descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute);
+  var newFont = NSFont.fontWithDescriptor_size(descriptor, fontSize);
+  textLayer.sketchObject.setFont(newFont);
+  document.sketchObject.inspectorController().reload();
 }
 
 /***/ }),
