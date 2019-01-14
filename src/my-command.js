@@ -1,12 +1,17 @@
 import sketch from 'sketch'
 // documentation: https://developer.sketchapp.com/reference/api/
 
+// Small Caps Buttons
+var pushOnOffButtonLowerCase
+var pushOnOffButtonUpperCase
+var radioButtonLiningFigures
+var radioButtonOldStyleFigures
+
 export default function() {
     sketch.UI.message("It's alive 🙌")
     runPanel()
 
     setupFramework()
-
     framework("CoreText");
     const document = sketch.getSelectedDocument();
     const textLayer = document.selectedLayers.layers[0]
@@ -21,6 +26,7 @@ export default function() {
 
     //determineProps(featuresArray);
 
+    updateUI()
     console.log("Hello Finish");
 }
 
@@ -69,7 +75,7 @@ function runPanel() {
 
 function setupPanel(threadDictionary, identifier) {
     var panelWidth = 312
-    var panelHeight = 305
+    var panelHeight = 210
     let panel = NSPanel.alloc().init()
     panel.setFrame_display(NSMakeRect(0, 0, panelWidth, panelHeight), true)
     panel.setStyleMask(NSTexturedBackgroundWindowMask | NSTitledWindowMask | NSClosableWindowMask)
@@ -141,44 +147,19 @@ function setupPanel(threadDictionary, identifier) {
         // Changes any characters having them into inferior forms designed for a technical context (as in H2O).
         //
         if (sender.title() == 'Superscript') {
-            let settingsAttribute = {
-                [NSFontFeatureSettingsAttribute]: [{
-                    [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
-                    [NSFontFeatureSelectorIdentifierKey]: kSuperiorsSelector
-                }]
-            }
+            let settingsAttribute = getSettingsAttributeForKey_Value(kVerticalPositionType, kSuperiorsSelector)
             updateFontFeatureSettingsAttribute(settingsAttribute)
         } else if (sender.title() == 'Subscript') {
-            let settingsAttribute = {
-                [NSFontFeatureSettingsAttribute]: [{
-                    [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
-                    [NSFontFeatureSelectorIdentifierKey]: kInferiorsSelector
-                }]
-            }
+            let settingsAttribute = getSettingsAttributeForKey_Value(kVerticalPositionType, kInferiorsSelector)
             updateFontFeatureSettingsAttribute(settingsAttribute)
         } else if (sender.title() == 'Ordinals') {
-            let settingsAttribute = {
-                [NSFontFeatureSettingsAttribute]: [{
-                    [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
-                    [NSFontFeatureSelectorIdentifierKey]: kOrdinalsSelector
-                }]
-            }
+            let settingsAttribute = getSettingsAttributeForKey_Value(kVerticalPositionType, kOrdinalsSelector)
             updateFontFeatureSettingsAttribute(settingsAttribute)
         } else if (sender.title() == 'Scientific Notiation') {
-            let settingsAttribute = {
-                [NSFontFeatureSettingsAttribute]: [{
-                    [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
-                    [NSFontFeatureSelectorIdentifierKey]: kOrdinalsSelector
-                }]
-            }
+            let settingsAttribute = getSettingsAttributeForKey_Value(kVerticalPositionType, kOrdinalsSelector)
             updateFontFeatureSettingsAttribute(settingsAttribute)
         } else {
-            let settingsAttribute = {
-                [NSFontFeatureSettingsAttribute]: [{
-                    [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
-                    [NSFontFeatureSelectorIdentifierKey]: kNormalPositionSelector
-                }]
-            }
+            let settingsAttribute = getSettingsAttributeForKey_Value(kVerticalPositionType, kNormalPositionSelector)
             updateFontFeatureSettingsAttribute(settingsAttribute)
         }
     }
@@ -220,6 +201,14 @@ function setupPanel(threadDictionary, identifier) {
 
     let numberSpacingTargetFunction = (sender) => {
         console.log(sender.title() + ' radio button was clicked')
+
+        if (sender.title() == 'Proportional') {
+            let settingsAttribute = getSettingsAttributeForKey_Value(kNumberSpacingType, kProportionalNumbersSelector)
+            updateFontFeatureSettingsAttribute(settingsAttribute)
+        } else {
+            let settingsAttribute = getSettingsAttributeForKey_Value(kNumberSpacingType, kMonospacedNumbersSelector)
+            updateFontFeatureSettingsAttribute(settingsAttribute)
+        }
     }
 
     radioButtonProportional.setCOSJSTargetFunction(sender => numberSpacingTargetFunction(sender))
@@ -254,25 +243,25 @@ function setupPanel(threadDictionary, identifier) {
         column1width
     ))
 
-    let radioButtonLiningFigures = NSButton.alloc().initWithFrame(NSMakeRect(0,0,104,17))
+    radioButtonLiningFigures = NSButton.alloc().initWithFrame(NSMakeRect(0,0,104,17))
     radioButtonLiningFigures.setButtonType(NSRadioButton)
     radioButtonLiningFigures.setTitle('Lining figures')
     radioButtonLiningFigures.setState(NSOnState)
 
-    let radioButtonOldStyleFigures = NSButton.alloc().initWithFrame(NSMakeRect(0,0,124,18))
+    radioButtonOldStyleFigures = NSButton.alloc().initWithFrame(NSMakeRect(0,0,124,18))
     radioButtonOldStyleFigures.setButtonType(NSRadioButton)
     radioButtonOldStyleFigures.setTitle('Old-style figures')
     radioButtonOldStyleFigures.setState(NSOffState)
 
     let numberCaseTargetFunction = (sender) => {
         console.log(sender.title() + ' radio button was clicked')
-        console.log(sender.state())
-        var currentFontProperties = getCurrentFontProperties()
 
         if (sender.title() == "Old-style figures") {
-
+            let settingsAttribute = getSettingsAttributeForKey_Value(kNumberCaseType, kLowerCaseNumbersSelector)
+            updateFontFeatureSettingsAttribute(settingsAttribute)
         } else {
-
+            let settingsAttribute = getSettingsAttributeForKey_Value(kNumberCaseType, kUpperCaseNumbersSelector)
+            updateFontFeatureSettingsAttribute(settingsAttribute)
         }
     }
 
@@ -314,7 +303,7 @@ function setupPanel(threadDictionary, identifier) {
         alignment: NSTextAlignmentLeft,
     })
 
-    var pushOnOffButtonLowerCase = NSButton.alloc().initWithFrame(NSMakeRect(0,0,72,32))
+    pushOnOffButtonLowerCase = NSButton.alloc().initWithFrame(NSMakeRect(0,0,72,32))
     pushOnOffButtonLowerCase.setButtonType(NSButtonTypeOnOff)
     pushOnOffButtonLowerCase.setBezelStyle(NSRoundedBezelStyle)
     pushOnOffButtonLowerCase.setTitle('Tt')
@@ -346,20 +335,10 @@ function setupPanel(threadDictionary, identifier) {
         // Display lower-case glyphs as petite caps
         //
         if (sender.state() == 0) {
-            let settingsAttribute = {
-                [NSFontFeatureSettingsAttribute]: [{
-                    [NSFontFeatureTypeIdentifierKey]: kLowerCaseType,
-                    [NSFontFeatureSelectorIdentifierKey]: kDefaultLowerCaseSelector
-                }]
-            }
+            let settingsAttribute = getSettingsAttributeForKey_Value(kLowerCaseType, kDefaultLowerCaseSelector)
             updateFontFeatureSettingsAttribute(settingsAttribute)
         } else {
-            let settingsAttribute = {
-                [NSFontFeatureSettingsAttribute]: [{
-                    [NSFontFeatureTypeIdentifierKey]: kLowerCaseType,
-                    [NSFontFeatureSelectorIdentifierKey]: kLowerCaseSmallCapsSelector
-                }]
-            }
+            let settingsAttribute = getSettingsAttributeForKey_Value(kLowerCaseType, kLowerCaseSmallCapsSelector)
             updateFontFeatureSettingsAttribute(settingsAttribute)
         }
     }
@@ -378,7 +357,7 @@ function setupPanel(threadDictionary, identifier) {
     lowerCaseStackView.setSpacing(4)
     lowerCaseStackView.setTranslatesAutoresizingMaskIntoConstraints(false)
 
-    var pushOnOffButtonUpperCase = NSButton.alloc().initWithFrame(NSMakeRect(0,0,72,32))
+    pushOnOffButtonUpperCase = NSButton.alloc().initWithFrame(NSMakeRect(0,0,72,32))
     pushOnOffButtonUpperCase.setButtonType(NSButtonTypeOnOff)
     pushOnOffButtonUpperCase.setBezelStyle(NSRoundedBezelStyle)
     pushOnOffButtonUpperCase.setTitle('Tt')
@@ -412,20 +391,10 @@ function setupPanel(threadDictionary, identifier) {
         //
         if (sender.state() == 0) {
             //Need to set to default setting
-            let settingsAttribute = {
-                [NSFontFeatureSettingsAttribute]: [{
-                    [NSFontFeatureTypeIdentifierKey]: kUpperCaseType,
-                    [NSFontFeatureSelectorIdentifierKey]: kDefaultUpperCaseSelector
-                }]
-            }
+            let settingsAttribute = getSettingsAttributeForKey_Value(kUpperCaseType, kDefaultUpperCaseSelector)
             updateFontFeatureSettingsAttribute(settingsAttribute)
         } else {
-            let settingsAttribute = {
-                [NSFontFeatureSettingsAttribute]: [{
-                    [NSFontFeatureTypeIdentifierKey]: kUpperCaseType,
-                    [NSFontFeatureSelectorIdentifierKey]: kUpperCaseSmallCapsSelector
-                }]
-            }
+            let settingsAttribute = getSettingsAttributeForKey_Value(kUpperCaseType, kUpperCaseSmallCapsSelector)
             updateFontFeatureSettingsAttribute(settingsAttribute)
         }
     }
@@ -539,3 +508,72 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
     document.sketchObject.inspectorController().reload()
 }
 
+function getSettingsAttributeForKey_Value(key, value) {
+    let settingsAttribute = {
+        [NSFontFeatureSettingsAttribute]: [{
+            [NSFontFeatureTypeIdentifierKey]: key,
+            [NSFontFeatureSelectorIdentifierKey]: value
+        }]
+    }
+
+    return settingsAttribute
+}
+
+function updateUI() {
+    // TODO: Reset All Controls
+    var document = sketch.getSelectedDocument();
+    var textLayer = document.selectedLayers.layers[0]
+    var font = textLayer.sketchObject.font()
+    var fontSize = font.pointSize()
+    var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+
+    fontFeatureSettings.forEach(function(featureSetting) {
+        const featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey]
+        const featureSelectorIdentifierKey = featureSetting[NSFontFeatureSelectorIdentifierKey]
+        console.log(featureTypeIdentifierKey)
+        console.log(featureSelectorIdentifierKey)
+
+        if (featureTypeIdentifierKey == 33) {
+            // kCaseSensitiveLayout
+        }
+
+        if (featureTypeIdentifierKey == 21) {
+            // kNumberCaseType
+            if (featureSelectorIdentifierKey == 0) {
+                console.log('Setting Number Case - Old-style')
+                radioButtonLiningFigures.setState(NSOffState)
+                radioButtonOldStyleFigures.setState(NSOnState)
+            } else {
+                console.log('Setting Number Case - Lining')
+                radioButtonLiningFigures.setState(NSOnState)
+                radioButtonOldStyleFigures.setState(NSOffState)
+            }
+        }
+
+        if (featureTypeIdentifierKey == 37) {
+            // kLowerCase
+            if (featureSelectorIdentifierKey == 0) {
+                // kDefaultLowerCaseSelector (aka OFF)
+                console.log('Setting Small Caps Lower Case - OFF')
+                pushOnOffButtonLowerCase.setState(NSOffState)
+            } else if (featureSelectorIdentifierKey == 1) {
+                // kLowerCaseSmallCapsSelector
+                console.log('Setting Small Caps Lower Case - ON')
+                pushOnOffButtonLowerCase.setState(NSOnState)
+            }
+        }
+
+        if (featureTypeIdentifierKey == 38) {
+            // kUpperCase
+            if (featureSelectorIdentifierKey == 0) {
+                // kDefaultUpperCaseSelector (aka OFF)
+                console.log('Setting Small Caps Upper Case OFF')
+                pushOnOffButtonUpperCase.setState(NSOffState)
+            } else if (featureSelectorIdentifierKey == 1) {
+                // kUpperCaseSmallCapsSelector
+                console.log('Setting Small Caps Upper Case ON')
+                pushOnOffButtonUpperCase.setState(NSOnState)
+            }
+        }
+    })
+}

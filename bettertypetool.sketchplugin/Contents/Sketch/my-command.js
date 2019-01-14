@@ -103,7 +103,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var sketch__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! sketch */ "sketch");
 /* harmony import */ var sketch__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(sketch__WEBPACK_IMPORTED_MODULE_0__);
  // documentation: https://developer.sketchapp.com/reference/api/
+// Small Caps Buttons
 
+var pushOnOffButtonLowerCase;
+var pushOnOffButtonUpperCase;
+var radioButtonLiningFigures;
+var radioButtonOldStyleFigures;
 /* harmony default export */ __webpack_exports__["default"] = (function () {
   sketch__WEBPACK_IMPORTED_MODULE_0___default.a.UI.message("It's alive 🙌");
   runPanel();
@@ -119,6 +124,7 @@ __webpack_require__.r(__webpack_exports__);
   var featuresArray = main.bridgeArray(features);
   var settingsArray = main.bridgeArray(settings); //determineProps(featuresArray);
 
+  updateUI();
   console.log("Hello Finish");
 });
 
@@ -161,7 +167,7 @@ function runPanel() {
 
 function setupPanel(threadDictionary, identifier) {
   var panelWidth = 312;
-  var panelHeight = 305;
+  var panelHeight = 210;
   var panel = NSPanel.alloc().init();
   panel.setFrame_display(NSMakeRect(0, 0, panelWidth, panelHeight), true);
   panel.setStyleMask(NSTexturedBackgroundWindowMask | NSTitledWindowMask | NSClosableWindowMask); // panel.setBackgroundColor(NSColor.whiteColor());
@@ -211,44 +217,23 @@ function setupPanel(threadDictionary, identifier) {
     //
 
     if (sender.title() == 'Superscript') {
-      var settingsAttribute = {
-        [NSFontFeatureSettingsAttribute]: [{
-          [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
-          [NSFontFeatureSelectorIdentifierKey]: kSuperiorsSelector
-        }]
-      };
+      var settingsAttribute = getSettingsAttributeForKey_Value(kVerticalPositionType, kSuperiorsSelector);
       updateFontFeatureSettingsAttribute(settingsAttribute);
     } else if (sender.title() == 'Subscript') {
-      var _settingsAttribute = {
-        [NSFontFeatureSettingsAttribute]: [{
-          [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
-          [NSFontFeatureSelectorIdentifierKey]: kInferiorsSelector
-        }]
-      };
+      var _settingsAttribute = getSettingsAttributeForKey_Value(kVerticalPositionType, kInferiorsSelector);
+
       updateFontFeatureSettingsAttribute(_settingsAttribute);
     } else if (sender.title() == 'Ordinals') {
-      var _settingsAttribute2 = {
-        [NSFontFeatureSettingsAttribute]: [{
-          [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
-          [NSFontFeatureSelectorIdentifierKey]: kOrdinalsSelector
-        }]
-      };
+      var _settingsAttribute2 = getSettingsAttributeForKey_Value(kVerticalPositionType, kOrdinalsSelector);
+
       updateFontFeatureSettingsAttribute(_settingsAttribute2);
     } else if (sender.title() == 'Scientific Notiation') {
-      var _settingsAttribute3 = {
-        [NSFontFeatureSettingsAttribute]: [{
-          [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
-          [NSFontFeatureSelectorIdentifierKey]: kOrdinalsSelector
-        }]
-      };
+      var _settingsAttribute3 = getSettingsAttributeForKey_Value(kVerticalPositionType, kOrdinalsSelector);
+
       updateFontFeatureSettingsAttribute(_settingsAttribute3);
     } else {
-      var _settingsAttribute4 = {
-        [NSFontFeatureSettingsAttribute]: [{
-          [NSFontFeatureTypeIdentifierKey]: kVerticalPositionType,
-          [NSFontFeatureSelectorIdentifierKey]: kNormalPositionSelector
-        }]
-      };
+      var _settingsAttribute4 = getSettingsAttributeForKey_Value(kVerticalPositionType, kNormalPositionSelector);
+
       updateFontFeatureSettingsAttribute(_settingsAttribute4);
     }
   };
@@ -279,6 +264,15 @@ function setupPanel(threadDictionary, identifier) {
 
   var numberSpacingTargetFunction = function numberSpacingTargetFunction(sender) {
     console.log(sender.title() + ' radio button was clicked');
+
+    if (sender.title() == 'Proportional') {
+      var settingsAttribute = getSettingsAttributeForKey_Value(kNumberSpacingType, kProportionalNumbersSelector);
+      updateFontFeatureSettingsAttribute(settingsAttribute);
+    } else {
+      var _settingsAttribute5 = getSettingsAttributeForKey_Value(kNumberSpacingType, kMonospacedNumbersSelector);
+
+      updateFontFeatureSettingsAttribute(_settingsAttribute5);
+    }
   };
 
   radioButtonProportional.setCOSJSTargetFunction(function (sender) {
@@ -304,21 +298,26 @@ function setupPanel(threadDictionary, identifier) {
     alignment: NSTextAlignmentRight
   });
   numberCaseLabel.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(numberCaseLabel, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, column1width));
-  var radioButtonLiningFigures = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 104, 17));
+  radioButtonLiningFigures = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 104, 17));
   radioButtonLiningFigures.setButtonType(NSRadioButton);
   radioButtonLiningFigures.setTitle('Lining figures');
   radioButtonLiningFigures.setState(NSOnState);
-  var radioButtonOldStyleFigures = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 124, 18));
+  radioButtonOldStyleFigures = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 124, 18));
   radioButtonOldStyleFigures.setButtonType(NSRadioButton);
   radioButtonOldStyleFigures.setTitle('Old-style figures');
   radioButtonOldStyleFigures.setState(NSOffState);
 
   var numberCaseTargetFunction = function numberCaseTargetFunction(sender) {
     console.log(sender.title() + ' radio button was clicked');
-    console.log(sender.state());
-    var currentFontProperties = getCurrentFontProperties();
 
-    if (sender.title() == "Old-style figures") {} else {}
+    if (sender.title() == "Old-style figures") {
+      var settingsAttribute = getSettingsAttributeForKey_Value(kNumberCaseType, kLowerCaseNumbersSelector);
+      updateFontFeatureSettingsAttribute(settingsAttribute);
+    } else {
+      var _settingsAttribute6 = getSettingsAttributeForKey_Value(kNumberCaseType, kUpperCaseNumbersSelector);
+
+      updateFontFeatureSettingsAttribute(_settingsAttribute6);
+    }
   };
 
   radioButtonLiningFigures.setCOSJSTargetFunction(function (sender) {
@@ -349,7 +348,7 @@ function setupPanel(threadDictionary, identifier) {
     frame: NSMakeRect(0, 0, 32, 17),
     alignment: NSTextAlignmentLeft
   });
-  var pushOnOffButtonLowerCase = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 72, 32));
+  pushOnOffButtonLowerCase = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 72, 32));
   pushOnOffButtonLowerCase.setButtonType(NSButtonTypeOnOff);
   pushOnOffButtonLowerCase.setBezelStyle(NSRoundedBezelStyle);
   pushOnOffButtonLowerCase.setTitle('Tt');
@@ -372,21 +371,12 @@ function setupPanel(threadDictionary, identifier) {
     //
 
     if (sender.state() == 0) {
-      var settingsAttribute = {
-        [NSFontFeatureSettingsAttribute]: [{
-          [NSFontFeatureTypeIdentifierKey]: kLowerCaseType,
-          [NSFontFeatureSelectorIdentifierKey]: kDefaultLowerCaseSelector
-        }]
-      };
+      var settingsAttribute = getSettingsAttributeForKey_Value(kLowerCaseType, kDefaultLowerCaseSelector);
       updateFontFeatureSettingsAttribute(settingsAttribute);
     } else {
-      var _settingsAttribute5 = {
-        [NSFontFeatureSettingsAttribute]: [{
-          [NSFontFeatureTypeIdentifierKey]: kLowerCaseType,
-          [NSFontFeatureSelectorIdentifierKey]: kLowerCaseSmallCapsSelector
-        }]
-      };
-      updateFontFeatureSettingsAttribute(_settingsAttribute5);
+      var _settingsAttribute7 = getSettingsAttributeForKey_Value(kLowerCaseType, kLowerCaseSmallCapsSelector);
+
+      updateFontFeatureSettingsAttribute(_settingsAttribute7);
     }
   };
 
@@ -404,7 +394,7 @@ function setupPanel(threadDictionary, identifier) {
   lowerCaseStackView.setAlignment(NSLayoutAttributeCenterX);
   lowerCaseStackView.setSpacing(4);
   lowerCaseStackView.setTranslatesAutoresizingMaskIntoConstraints(false);
-  var pushOnOffButtonUpperCase = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 72, 32));
+  pushOnOffButtonUpperCase = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 72, 32));
   pushOnOffButtonUpperCase.setButtonType(NSButtonTypeOnOff);
   pushOnOffButtonUpperCase.setBezelStyle(NSRoundedBezelStyle);
   pushOnOffButtonUpperCase.setTitle('Tt');
@@ -429,21 +419,12 @@ function setupPanel(threadDictionary, identifier) {
 
     if (sender.state() == 0) {
       //Need to set to default setting
-      var settingsAttribute = {
-        [NSFontFeatureSettingsAttribute]: [{
-          [NSFontFeatureTypeIdentifierKey]: kUpperCaseType,
-          [NSFontFeatureSelectorIdentifierKey]: kDefaultUpperCaseSelector
-        }]
-      };
+      var settingsAttribute = getSettingsAttributeForKey_Value(kUpperCaseType, kDefaultUpperCaseSelector);
       updateFontFeatureSettingsAttribute(settingsAttribute);
     } else {
-      var _settingsAttribute6 = {
-        [NSFontFeatureSettingsAttribute]: [{
-          [NSFontFeatureTypeIdentifierKey]: kUpperCaseType,
-          [NSFontFeatureSelectorIdentifierKey]: kUpperCaseSmallCapsSelector
-        }]
-      };
-      updateFontFeatureSettingsAttribute(_settingsAttribute6);
+      var _settingsAttribute8 = getSettingsAttributeForKey_Value(kUpperCaseType, kUpperCaseSmallCapsSelector);
+
+      updateFontFeatureSettingsAttribute(_settingsAttribute8);
     }
   };
 
@@ -540,6 +521,73 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
   var newFont = NSFont.fontWithDescriptor_size(descriptor, fontSize);
   textLayer.sketchObject.setFont(newFont);
   document.sketchObject.inspectorController().reload();
+}
+
+function getSettingsAttributeForKey_Value(key, value) {
+  var settingsAttribute = {
+    [NSFontFeatureSettingsAttribute]: [{
+      [NSFontFeatureTypeIdentifierKey]: key,
+      [NSFontFeatureSelectorIdentifierKey]: value
+    }]
+  };
+  return settingsAttribute;
+}
+
+function updateUI() {
+  // TODO: Reset All Controls
+  var document = sketch__WEBPACK_IMPORTED_MODULE_0___default.a.getSelectedDocument();
+  var textLayer = document.selectedLayers.layers[0];
+  var font = textLayer.sketchObject.font();
+  var fontSize = font.pointSize();
+  var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
+  fontFeatureSettings.forEach(function (featureSetting) {
+    var featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey];
+    var featureSelectorIdentifierKey = featureSetting[NSFontFeatureSelectorIdentifierKey];
+    console.log(featureTypeIdentifierKey);
+    console.log(featureSelectorIdentifierKey);
+
+    if (featureTypeIdentifierKey == 33) {// kCaseSensitiveLayout
+    }
+
+    if (featureTypeIdentifierKey == 21) {
+      // kNumberCaseType
+      if (featureSelectorIdentifierKey == 0) {
+        console.log('Setting Number Case - Old-style');
+        radioButtonLiningFigures.setState(NSOffState);
+        radioButtonOldStyleFigures.setState(NSOnState);
+      } else {
+        console.log('Setting Number Case - Lining');
+        radioButtonLiningFigures.setState(NSOnState);
+        radioButtonOldStyleFigures.setState(NSOffState);
+      }
+    }
+
+    if (featureTypeIdentifierKey == 37) {
+      // kLowerCase
+      if (featureSelectorIdentifierKey == 0) {
+        // kDefaultLowerCaseSelector (aka OFF)
+        console.log('Setting Small Caps Lower Case - OFF');
+        pushOnOffButtonLowerCase.setState(NSOffState);
+      } else if (featureSelectorIdentifierKey == 1) {
+        // kLowerCaseSmallCapsSelector
+        console.log('Setting Small Caps Lower Case - ON');
+        pushOnOffButtonLowerCase.setState(NSOnState);
+      }
+    }
+
+    if (featureTypeIdentifierKey == 38) {
+      // kUpperCase
+      if (featureSelectorIdentifierKey == 0) {
+        // kDefaultUpperCaseSelector (aka OFF)
+        console.log('Setting Small Caps Upper Case OFF');
+        pushOnOffButtonUpperCase.setState(NSOffState);
+      } else if (featureSelectorIdentifierKey == 1) {
+        // kUpperCaseSmallCapsSelector
+        console.log('Setting Small Caps Upper Case ON');
+        pushOnOffButtonUpperCase.setState(NSOnState);
+      }
+    }
+  });
 }
 
 /***/ }),
