@@ -95,11 +95,12 @@ var exports =
 /*!***************************!*\
   !*** ./src/my-command.js ***!
   \***************************/
-/*! exports provided: default */
+/*! exports provided: default, selectionChanged */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "selectionChanged", function() { return selectionChanged; });
 /* harmony import */ var sketch__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! sketch */ "sketch");
 /* harmony import */ var sketch__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(sketch__WEBPACK_IMPORTED_MODULE_0__);
  // documentation: https://developer.sketchapp.com/reference/api/
@@ -109,6 +110,7 @@ var pushOnOffButtonLowerCase;
 var pushOnOffButtonUpperCase;
 var radioButtonLiningFigures;
 var radioButtonOldStyleFigures;
+var threadIdentifier = "co.betterTypePanel";
 /* harmony default export */ __webpack_exports__["default"] = (function () {
   sketch__WEBPACK_IMPORTED_MODULE_0___default.a.UI.message("It's alive 🙌");
   runPanel();
@@ -125,8 +127,17 @@ var radioButtonOldStyleFigures;
   var settingsArray = main.bridgeArray(settings); //determineProps(featuresArray);
 
   updateUI();
-  console.log("Hello Finish");
 });
+function selectionChanged(context) {
+  var threadDictionary = NSThread.mainThread().threadDictionary(); // check if the panel is open, if open update UI, else just do nothing
+
+  if (threadDictionary[threadIdentifier]) {
+    console.log(threadDictionary[threadIdentifier]);
+    updateUI(); //Question: Is it best to go through context.newSelection rather than sketch.getSelectedDoucment...?
+  } else {
+    return;
+  }
+}
 
 function setupFramework() {
   // var HelloSketch_FrameworkPath = HelloSketch_FrameworkPath || COScript.currentCOScript().env().scriptURL.path().stringByDeletingLastPathComponent();
@@ -157,12 +168,11 @@ function determineProps(featuresArray) {}
 
 function runPanel() {
   console.log("Setting Up Panel");
-  var threadDictionary = NSThread.mainThread().threadDictionary();
-  var identifier = "co.betterTypePanel"; // If there is already a panel, prevent the plugin from running again
+  var threadDictionary = NSThread.mainThread().threadDictionary(); // If there is already a panel, prevent the plugin from running again
 
-  if (threadDictionary[identifier]) return;
+  if (threadDictionary[threadIdentifier]) return;
   threadDictionary.panelOpen = true;
-  setupPanel(threadDictionary, identifier);
+  setupPanel(threadDictionary, threadIdentifier);
 }
 
 function setupPanel(threadDictionary, identifier) {
@@ -534,12 +544,12 @@ function getSettingsAttributeForKey_Value(key, value) {
 }
 
 function updateUI() {
-  // TODO: Reset All Controls
   var document = sketch__WEBPACK_IMPORTED_MODULE_0___default.a.getSelectedDocument();
   var textLayer = document.selectedLayers.layers[0];
   var font = textLayer.sketchObject.font();
   var fontSize = font.pointSize();
   var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
+  console.log(pushOnOffButtonLowerCase);
   fontFeatureSettings.forEach(function (featureSetting) {
     var featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey];
     var featureSelectorIdentifierKey = featureSetting[NSFontFeatureSelectorIdentifierKey];
@@ -610,6 +620,7 @@ module.exports = require("sketch");
     exports[key](context);
   }
 }
-that['onRun'] = __skpm_run.bind(this, 'default')
+that['onRun'] = __skpm_run.bind(this, 'default');
+that['selectionChanged'] = __skpm_run.bind(this, 'selectionChanged')
 
 //# sourceMappingURL=my-command.js.map

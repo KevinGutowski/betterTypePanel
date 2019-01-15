@@ -7,6 +7,8 @@ var pushOnOffButtonUpperCase
 var radioButtonLiningFigures
 var radioButtonOldStyleFigures
 
+let threadIdentifier = "co.betterTypePanel"
+
 export default function() {
     sketch.UI.message("It's alive 🙌")
     runPanel()
@@ -27,7 +29,18 @@ export default function() {
     //determineProps(featuresArray);
 
     updateUI()
-    console.log("Hello Finish");
+}
+
+export function selectionChanged(context) {
+    let threadDictionary = NSThread.mainThread().threadDictionary()
+    // check if the panel is open, if open update UI, else just do nothing
+    if (threadDictionary[threadIdentifier]) {
+        console.log(threadDictionary[threadIdentifier])
+        updateUI()
+        //Question: Is it best to go through context.newSelection rather than sketch.getSelectedDoucment...?
+    } else {
+        return
+    }
 }
 
 function setupFramework() {
@@ -65,12 +78,11 @@ function determineProps(featuresArray) {
 function runPanel() {
     console.log("Setting Up Panel")
     let threadDictionary = NSThread.mainThread().threadDictionary()
-    let identifier = "co.betterTypePanel"
 
     // If there is already a panel, prevent the plugin from running again
-    if (threadDictionary[identifier]) return
+    if (threadDictionary[threadIdentifier]) return
     threadDictionary.panelOpen = true
-    setupPanel(threadDictionary, identifier)
+    setupPanel(threadDictionary, threadIdentifier)
 }
 
 function setupPanel(threadDictionary, identifier) {
@@ -520,12 +532,12 @@ function getSettingsAttributeForKey_Value(key, value) {
 }
 
 function updateUI() {
-    // TODO: Reset All Controls
-    var document = sketch.getSelectedDocument();
+    var document = sketch.getSelectedDocument()
     var textLayer = document.selectedLayers.layers[0]
     var font = textLayer.sketchObject.font()
     var fontSize = font.pointSize()
     var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+    console.log(pushOnOffButtonLowerCase)
 
     fontFeatureSettings.forEach(function(featureSetting) {
         const featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey]
@@ -577,3 +589,5 @@ function updateUI() {
         }
     })
 }
+
+

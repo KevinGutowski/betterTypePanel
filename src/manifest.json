@@ -6,13 +6,25 @@
     {
       "name": "my-command",
       "identifier": "my-command-identifier",
-      "script": "./my-command.js"
+      "script": "./my-command.js",
+      "shortcut": "control cmd t"
+    },
+    {
+      "name": "selectionChanged",
+      "identifier": "mySelectionChanged",
+      "script": "./my-command.js",
+      "handlers": {
+        "actions": {
+          "SelectionChanged.begin" : "selectionChanged"
+        }
+      }
     }
   ],
   "menu": {
     "title": "betterTypeTool",
     "items": [
       "my-command-identifier"
-    ]
+    ],
+    "isRoot": true
   }
 }
