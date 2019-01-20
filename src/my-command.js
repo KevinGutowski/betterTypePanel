@@ -332,7 +332,7 @@ function setupPanel(threadDictionary, identifier) {
     var pushOnOffButtonLowerCase = NSButton.alloc().initWithFrame(NSMakeRect(0,0,72,32))
     pushOnOffButtonLowerCase.setButtonType(NSButtonTypeOnOff)
     pushOnOffButtonLowerCase.setBezelStyle(NSRoundedBezelStyle)
-    pushOnOffButtonLowerCase.setAttributedTitle('Tt')
+    pushOnOffButtonLowerCase.setTitle('Tt')
     pushOnOffButtonLowerCase.setState(NSOffState)
 
     pushOnOffButtonLowerCase.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(
