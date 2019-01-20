@@ -103,14 +103,19 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "selectionChanged", function() { return selectionChanged; });
 /* harmony import */ var sketch__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! sketch */ "sketch");
 /* harmony import */ var sketch__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(sketch__WEBPACK_IMPORTED_MODULE_0__);
- // documentation: https://developer.sketchapp.com/reference/api/
-// Small Caps Buttons
+ // Documentation:
+// https://developer.sketchapp.com/reference/api/
+// https://developer.apple.com/fonts/TrueType-Reference-Manual/RM09/AppendixF.html
 
-var pushOnOffButtonLowerCase;
-var pushOnOffButtonUpperCase;
-var radioButtonLiningFigures;
-var radioButtonOldStyleFigures;
-var threadIdentifier = "co.betterTypePanel";
+COScript.currentCOScript().setShouldKeepAround_(true);
+var threadIdentifier = "com.betterTypePanel";
+var verticalPositionPopupButtonID = "com.betterTypePanel.popupButton.verticalPosition";
+var radioButtonProportionalID = "com.betterTypePanel.radioButton.proportional";
+var radioButtonMonospacedOrTabularID = "com.betterTypePanel.radioButton.monospaced";
+var pushOnOffButtonLowerCaseID = "com.betterTypePanel.button.lowerCase";
+var pushOnOffButtonUpperCaseID = "com.betterTypePanel.button.upperCase";
+var radioButtonLiningFiguresID = "com.betterTypePanel.radioButton.liningFigures";
+var radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle";
 /* harmony default export */ __webpack_exports__["default"] = (function () {
   sketch__WEBPACK_IMPORTED_MODULE_0___default.a.UI.message("It's alive 🙌");
   runPanel();
@@ -132,7 +137,8 @@ function selectionChanged(context) {
   var threadDictionary = NSThread.mainThread().threadDictionary(); // check if the panel is open, if open update UI, else just do nothing
 
   if (threadDictionary[threadIdentifier]) {
-    console.log(threadDictionary[threadIdentifier]);
+    // TODO: Add check if selection is properly setup
+    console.log("selectionChanged");
     updateUI(); //Question: Is it best to go through context.newSelection rather than sketch.getSelectedDoucment...?
   } else {
     return;
@@ -186,7 +192,6 @@ function setupPanel(threadDictionary, identifier) {
   panel.center();
   panel.makeKeyAndOrderFront(null);
   panel.setLevel(NSFloatingWindowLevel);
-  COScript.currentCOScript().setShouldKeepAround_(true);
   panel.standardWindowButton(NSWindowMiniaturizeButton).setHidden(true);
   panel.standardWindowButton(NSWindowZoomButton).setHidden(true);
   var column1width = 109;
@@ -202,7 +207,8 @@ function setupPanel(threadDictionary, identifier) {
   });
   verticalPositionLabel.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(verticalPositionLabel, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, column1width));
   var verticalPositionPopupButton = NSPopUpButton.alloc().initWithFrame(NSMakeRect(0, 0, 150, 25));
-  verticalPositionPopupButton.addItemsWithTitles(['Default Position', 'Superscript', 'Subscript', 'Ordinals', 'Scientific Notiation']);
+  verticalPositionPopupButton.addItemsWithTitles(['Default Position', 'Superscript', 'Subscript', 'Ordinals', 'Scientific Notation']);
+  threadDictionary[verticalPositionPopupButtonID] = verticalPositionPopupButton;
 
   var verticalPositionTargetFuntion = function verticalPositionTargetFuntion(sender) {
     console.log(sender.title() + ' dropdown button was selected'); // Vertical Position
@@ -237,7 +243,7 @@ function setupPanel(threadDictionary, identifier) {
       var _settingsAttribute2 = getSettingsAttributeForKey_Value(kVerticalPositionType, kOrdinalsSelector);
 
       updateFontFeatureSettingsAttribute(_settingsAttribute2);
-    } else if (sender.title() == 'Scientific Notiation') {
+    } else if (sender.title() == 'Scientific Notation') {
       var _settingsAttribute3 = getSettingsAttributeForKey_Value(kVerticalPositionType, kOrdinalsSelector);
 
       updateFontFeatureSettingsAttribute(_settingsAttribute3);
@@ -267,10 +273,12 @@ function setupPanel(threadDictionary, identifier) {
   radioButtonProportional.setButtonType(NSRadioButton);
   radioButtonProportional.setTitle('Proportional');
   radioButtonProportional.setState(NSOnState);
+  threadDictionary[radioButtonProportionalID] = radioButtonProportional;
   var radioButtonMonospacedOrTabular = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 150, 18));
   radioButtonMonospacedOrTabular.setButtonType(NSRadioButton);
   radioButtonMonospacedOrTabular.setTitle('Monospaced/Tabular');
   radioButtonMonospacedOrTabular.setState(NSOffState);
+  threadDictionary[radioButtonMonospacedOrTabularID] = radioButtonMonospacedOrTabular;
 
   var numberSpacingTargetFunction = function numberSpacingTargetFunction(sender) {
     console.log(sender.title() + ' radio button was clicked');
@@ -308,14 +316,16 @@ function setupPanel(threadDictionary, identifier) {
     alignment: NSTextAlignmentRight
   });
   numberCaseLabel.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(numberCaseLabel, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, column1width));
-  radioButtonLiningFigures = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 104, 17));
+  var radioButtonLiningFigures = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 104, 17));
   radioButtonLiningFigures.setButtonType(NSRadioButton);
   radioButtonLiningFigures.setTitle('Lining figures');
   radioButtonLiningFigures.setState(NSOnState);
-  radioButtonOldStyleFigures = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 124, 18));
+  threadDictionary[radioButtonLiningFiguresID] = radioButtonLiningFigures;
+  var radioButtonOldStyleFigures = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 124, 18));
   radioButtonOldStyleFigures.setButtonType(NSRadioButton);
   radioButtonOldStyleFigures.setTitle('Old-style figures');
   radioButtonOldStyleFigures.setState(NSOffState);
+  threadDictionary[radioButtonOldStyleFiguresID] = radioButtonOldStyleFigures;
 
   var numberCaseTargetFunction = function numberCaseTargetFunction(sender) {
     console.log(sender.title() + ' radio button was clicked');
@@ -358,12 +368,13 @@ function setupPanel(threadDictionary, identifier) {
     frame: NSMakeRect(0, 0, 32, 17),
     alignment: NSTextAlignmentLeft
   });
-  pushOnOffButtonLowerCase = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 72, 32));
+  var pushOnOffButtonLowerCase = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 72, 32));
   pushOnOffButtonLowerCase.setButtonType(NSButtonTypeOnOff);
   pushOnOffButtonLowerCase.setBezelStyle(NSRoundedBezelStyle);
-  pushOnOffButtonLowerCase.setTitle('Tt');
+  pushOnOffButtonLowerCase.setAttributedTitle('Tt');
   pushOnOffButtonLowerCase.setState(NSOffState);
   pushOnOffButtonLowerCase.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(pushOnOffButtonLowerCase, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, 60));
+  threadDictionary[pushOnOffButtonLowerCaseID] = pushOnOffButtonLowerCase;
 
   var smallCapsLowerCaseTargetFunction = function smallCapsLowerCaseTargetFunction(sender) {
     console.log(sender.title() + ' toggle was clicked'); // Small Caps Lower Case
@@ -404,12 +415,13 @@ function setupPanel(threadDictionary, identifier) {
   lowerCaseStackView.setAlignment(NSLayoutAttributeCenterX);
   lowerCaseStackView.setSpacing(4);
   lowerCaseStackView.setTranslatesAutoresizingMaskIntoConstraints(false);
-  pushOnOffButtonUpperCase = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 72, 32));
+  var pushOnOffButtonUpperCase = NSButton.alloc().initWithFrame(NSMakeRect(0, 0, 72, 32));
   pushOnOffButtonUpperCase.setButtonType(NSButtonTypeOnOff);
   pushOnOffButtonUpperCase.setBezelStyle(NSRoundedBezelStyle);
   pushOnOffButtonUpperCase.setTitle('Tt');
   pushOnOffButtonUpperCase.setState(NSOffState);
   pushOnOffButtonUpperCase.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(pushOnOffButtonUpperCase, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, 60));
+  threadDictionary[pushOnOffButtonUpperCaseID] = pushOnOffButtonUpperCase;
 
   var smallCapsUpperCaseTargetFunction = function smallCapsUpperCaseTargetFunction(sender) {
     console.log(sender.title() + ' toggle was clicked'); //Small Caps Upper Case
@@ -549,26 +561,161 @@ function updateUI() {
   var font = textLayer.sketchObject.font();
   var fontSize = font.pointSize();
   var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
-  console.log(pushOnOffButtonLowerCase);
+  var threadDictionary = NSThread.mainThread().threadDictionary(); //Start with Default Settings
+
+  var defaultUISettings = {
+    'verticalPosition': 'default',
+    // 'default', 'superscript', 'subscript', 'ordinals', 'scientific inferiors'
+    'numberSpacing': 'proportional',
+    // 'proportional', 'monospaced'
+    'numberCase': 'lining',
+    // 'lining', 'oldStyle'
+    'smallCapsLowerCase': false,
+    // bool
+    'smallCapsUpperCase': false // bool
+    // Update uiSettings array
+    // need to do this because fontFeatureSettings only has
+    // settings for applied options (doesn't contain state for all options)
+
+  };
+  var updatedUISettings = modifyUISettings(fontFeatureSettings, defaultUISettings);
+  console.log(updatedUISettings); //Update UI Panel with only one update (to prevent flickering)
+
+  for (var uiSetting in updatedUISettings) {
+    if (uiSetting == 'verticalPosition') {
+      var verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID];
+
+      if (updatedUISettings[uiSetting] == 'default') {
+        console.log('Setting UI: Vertical Position = Default Position');
+        verticalPositionPopupButton.selectItemWithTitle('Default Position');
+      } else if (updatedUISettings[uiSetting] == 'superscript') {
+        console.log('Setting UI: Vertical Position = Superscript');
+        verticalPositionPopupButton.selectItemWithTitle('Superscript');
+      } else if (updatedUISettings[uiSetting] == 'subscript') {
+        console.log('Setting UI: Vertical Position = Subscript');
+        verticalPositionPopupButton.selectItemWithTitle('Subscript');
+      } else if (updatedUISettings[uiSetting] == 'ordinals') {
+        console.log('Setting UI: Vertical Position = Ordinals');
+        verticalPositionPopupButton.selectItemWithTitle('Ordinals');
+      } else if (updatedUISettings[uiSetting] == 'scientific inferiors') {
+        console.log('Setting UI: Vertical Position = Scientific Notation');
+        verticalPositionPopupButton.selectItemWithTitle('Scientific Notation');
+      } else {
+        console.log('Error: Attempting update panel state - Out of scope of verticalPosition options');
+      }
+    } else if (uiSetting == 'numberSpacing') {
+      var radioButtonProportional = threadDictionary[radioButtonProportionalID];
+      var radioButtonMonospacedOrTabular = threadDictionary[radioButtonMonospacedOrTabularID];
+
+      if (updatedUISettings[uiSetting] == 'proportional') {
+        console.log('Setting UI: Number Spacing = Proportional');
+        radioButtonProportional.setState(NSOnState);
+        radioButtonMonospacedOrTabular.setState(NSOffState);
+      } else if (updatedUISettings[uiSetting] == 'monospaced') {
+        console.log('Setting UI: Number Spacing == Monospaced/Tabular');
+        radioButtonProportional.setState(NSOffState);
+        radioButtonMonospacedOrTabular.setState(NSOnState);
+      } else {
+        console.log('Error: Attempting update panel state - Out of scope of numberSpacing options');
+      }
+    } else if (uiSetting == 'numberCase') {
+      var radioButtonLiningFigures = threadDictionary[radioButtonLiningFiguresID];
+      var radioButtonOldStyleFigures = threadDictionary[radioButtonOldStyleFiguresID];
+
+      if (updatedUISettings[uiSetting] == 'lining') {
+        console.log('Setting UI: Number Case = Lining figures');
+        radioButtonLiningFigures.setState(NSOnState);
+        radioButtonOldStyleFigures.setState(NSOffState);
+      } else if (updatedUISettings[uiSetting] == 'oldStyle') {
+        console.log('Setting UI: Number Case = Old-style figures');
+        radioButtonLiningFigures.setState(NSOffState);
+        radioButtonOldStyleFigures.setState(NSOnState);
+      } else {
+        console.log('Error: Attempting to update panel state - Out of scope of numberCase options');
+      }
+    } else if (uiSetting == 'smallCapsUpperCase') {
+      var pushOnOffButtonUpperCase = threadDictionary[pushOnOffButtonUpperCaseID];
+
+      if (updatedUISettings[uiSetting] == false) {
+        console.log('Setting UI: Small Caps Upper Case = Off');
+        pushOnOffButtonUpperCase.setState(NSOffState);
+      } else if (updatedUISettings[uiSetting] == true) {
+        console.log('Setting UI: Small Caps Upper Case = On');
+        pushOnOffButtonUpperCase.setState(NSOnState);
+      }
+    } else if (uiSetting == 'smallCapsLowerCase') {
+      var pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID];
+
+      if (updatedUISettings[uiSetting] == false) {
+        console.log('Setting UI: Small Caps Lower Case = Off');
+        pushOnOffButtonLowerCase.setState(NSOffState);
+      } else if (updatedUISettings[uiSetting] == true) {
+        console.log('Setting UI: Small Caps Lower Case = On');
+        pushOnOffButtonLowerCase.setState(NSOnState);
+      }
+    } else {
+      console.log('Error: Unhandled uiSetting Property');
+      console.log(updatedUISettings[uiSetting]);
+    }
+  }
+}
+
+function modifyUISettings(fontFeatureSettings, uiSettings) {
   fontFeatureSettings.forEach(function (featureSetting) {
     var featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey];
     var featureSelectorIdentifierKey = featureSetting[NSFontFeatureSelectorIdentifierKey];
-    console.log(featureTypeIdentifierKey);
-    console.log(featureSelectorIdentifierKey);
 
-    if (featureTypeIdentifierKey == 33) {// kCaseSensitiveLayout
+    if (featureTypeIdentifierKey == 10) {
+      // kVerticalPosition
+      if (featureSelectorIdentifierKey == 0) {
+        // kNormalPositionSelector
+        uiSettings.verticalPosition = 'default';
+      } else if (featureSelectorIdentifierKey == 1) {
+        // kSuperiorsSelector
+        uiSettings.verticalPosition = 'superscript';
+      } else if (featureSelectorIdentifierKey == 2) {
+        // kInferiorsSelector
+        uiSettings.verticalPosition = 'subscript';
+      } else if (featureSelectorIdentifierKey == 3) {
+        // kOrdinalsSelector
+        uiSettings.verticalPosition = 'ordinals';
+      } else if (featureSelectorIdentifierKey == 4) {
+        // kScientificInferiorsSelector
+        uiSettings.verticalPosition = 'scientific inferiors';
+      } else {
+        console.log("Unknown Feature for Vertical Position");
+      }
+    }
+
+    if (featureTypeIdentifierKey == 6) {
+      //kNumberSpacing
+      if (featureSelectorIdentifierKey == 0) {
+        // kMonospacedNumbersSelector
+        uiSettings.numberSpacing = 'monospaced';
+      } else if (featureSelectorIdentifierKey == 1) {
+        // kProportionalNumbersSelector
+        uiSettings.numberSpacing = 'proportional';
+      } else if (featureSelectorIdentifierKey == 2) {
+        // kThirdWidthNumbersSelector
+        console.log("Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)");
+      } else if (featureSelectorIdentifierKey == 3) {
+        // kQuarterWidthNumbersSelector
+        console.log("Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals");
+      } else {
+        console.log("Unknown feature for Number Spacing");
+      }
     }
 
     if (featureTypeIdentifierKey == 21) {
       // kNumberCaseType
       if (featureSelectorIdentifierKey == 0) {
-        console.log('Setting Number Case - Old-style');
-        radioButtonLiningFigures.setState(NSOffState);
-        radioButtonOldStyleFigures.setState(NSOnState);
+        // kLowerCaseNumbersSelector
+        uiSettings.numberCase = 'oldStyle';
+      } else if (featureSelectorIdentifierKey == 1) {
+        // kUpperCaseNumbersSelector
+        uiSettings.numberCase = 'lining';
       } else {
-        console.log('Setting Number Case - Lining');
-        radioButtonLiningFigures.setState(NSOnState);
-        radioButtonOldStyleFigures.setState(NSOffState);
+        console.log("Unknown feature for Number Case");
       }
     }
 
@@ -576,12 +723,13 @@ function updateUI() {
       // kLowerCase
       if (featureSelectorIdentifierKey == 0) {
         // kDefaultLowerCaseSelector (aka OFF)
-        console.log('Setting Small Caps Lower Case - OFF');
-        pushOnOffButtonLowerCase.setState(NSOffState);
+        uiSettings.smallCapsLowerCase = false;
       } else if (featureSelectorIdentifierKey == 1) {
         // kLowerCaseSmallCapsSelector
-        console.log('Setting Small Caps Lower Case - ON');
-        pushOnOffButtonLowerCase.setState(NSOnState);
+        uiSettings.smallCapsLowerCase = true;
+      } else if (featureSelectorIdentifierKey == 2) {
+        // kLowerCasePetiteCapsSelector
+        console.log("Unsupported Lower Case Small Caps Feature - Lower Case Petite Caps");
       }
     }
 
@@ -589,15 +737,17 @@ function updateUI() {
       // kUpperCase
       if (featureSelectorIdentifierKey == 0) {
         // kDefaultUpperCaseSelector (aka OFF)
-        console.log('Setting Small Caps Upper Case OFF');
-        pushOnOffButtonUpperCase.setState(NSOffState);
+        uiSettings.smallCapsUpperCase = false;
       } else if (featureSelectorIdentifierKey == 1) {
         // kUpperCaseSmallCapsSelector
-        console.log('Setting Small Caps Upper Case ON');
-        pushOnOffButtonUpperCase.setState(NSOnState);
+        uiSettings.smallCapsUpperCase = true;
+      } else if (featureSelectorIdentifierKey == 2) {
+        // kUpperCasePetiteCapsSelector
+        console.log("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps");
       }
     }
   });
+  return uiSettings;
 }
 
 /***/ }),

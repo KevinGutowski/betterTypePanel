@@ -2,6 +2,15 @@
 
 _This plugin was created using `skpm`. For a detailed explanation on how things work, checkout the [skpm Readme](https://github.com/skpm/skpm/blob/master/README.md)._
 
+## TODOS
+[X] When setting up the UI, set the state of the buttons properly the first time (i.e. check if there is a text object selected or not and then set the state rather than setting the default state of the UI then running `updateUI()`)
+[] Properly style small caps buttons
+[] Support Fractional Forms
+
+## Later Goals
+[] Better Support Multiple layer selection
+[] Ability to select text and apply transformation to just the selected text range
+
 ## Usage
 
 Install the dependencies
