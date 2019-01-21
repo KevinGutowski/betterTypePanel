@@ -20,16 +20,16 @@ export default function() {
 
     setupFramework()
     framework("CoreText");
-    const document = sketch.getSelectedDocument();
-    const textLayer = document.selectedLayers.layers[0]
-    const font = textLayer.sketchObject.font()
-    const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), nil);
-    const features = CTFontCopyFeatures(coreTextFont)
-    const settings = CTFontCopyFeatureSettings(coreTextFont)
+    // const document = sketch.getSelectedDocument();
+    // const textLayer = document.selectedLayers.layers[0]
+    // const font = textLayer.sketchObject.font()
+    // const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), nil);
+    // const features = CTFontCopyFeatures(coreTextFont)
+    // const settings = CTFontCopyFeatureSettings(coreTextFont)
 
-    var main = HSMain.alloc().init()
-    var featuresArray = main.bridgeArray(features)
-    var settingsArray = main.bridgeArray(settings)
+    // var main = HSMain.alloc().init()
+    // var featuresArray = main.bridgeArray(features)
+    // var settingsArray = main.bridgeArray(settings)
 
     //determineProps(featuresArray);
 
@@ -37,13 +37,11 @@ export default function() {
 }
 
 export function selectionChanged(context) {
+    framework("CoreText");
     let threadDictionary = NSThread.mainThread().threadDictionary()
     // check if the panel is open, if open update UI, else just do nothing
     if (threadDictionary[threadIdentifier]) {
-        // TODO: Add check if selection is properly setup
-        console.log("selectionChanged")
         updateUI()
-        //Question: Is it best to go through context.newSelection rather than sketch.getSelectedDoucment...?
     } else {
         return
     }
@@ -64,14 +62,14 @@ function setupFramework() {
         var frameworkName = "HelloSketch";
         var directory = HelloSketch_FrameworkPath;
         if (mocha.valueForKey(frameworkName)) {
-            HelloSketch_Log("😎 loadFramework: `" + frameworkName + "` already loaded.");
+            // HelloSketch_Log("😎 loadFramework: `" + frameworkName + "` already loaded.");
             return true;
         } else if (mocha.loadFrameworkWithName_inDirectory(frameworkName, directory)) {
-            HelloSketch_Log("✅ loadFramework: `" + frameworkName + "` success!");
+            // HelloSketch_Log("✅ loadFramework: `" + frameworkName + "` success!");
             mocha.setValue_forKey_(true, frameworkName);
             return true;
         } else {
-            HelloSketch_Log("❌ loadFramework: `" + frameworkName + "` failed!: " + directory + ". Please define HelloSketch_FrameworkPath if you're trying to @import in a custom plugin");
+            // HelloSketch_Log("❌ loadFramework: `" + frameworkName + "` failed!: " + directory + ". Please define HelloSketch_FrameworkPath if you're trying to @import in a custom plugin");
             return false;
         }
     })();
@@ -82,7 +80,7 @@ function determineProps(featuresArray) {
 }
 
 function runPanel() {
-    console.log("Setting Up Panel")
+    // console.log("Setting Up Panel")
     let threadDictionary = NSThread.mainThread().threadDictionary()
 
     // If there is already a panel, prevent the plugin from running again
@@ -143,7 +141,7 @@ function setupPanel(threadDictionary, identifier) {
     threadDictionary[verticalPositionPopupButtonID] = verticalPositionPopupButton
 
     let verticalPositionTargetFuntion = (sender) => {
-        console.log(sender.title() + ' dropdown button was selected')
+        // console.log(sender.title() + ' dropdown button was selected')
         // Vertical Position
         // ID: kVerticalPositionType
         //
@@ -222,7 +220,7 @@ function setupPanel(threadDictionary, identifier) {
     threadDictionary[radioButtonMonospacedOrTabularID] = radioButtonMonospacedOrTabular
 
     let numberSpacingTargetFunction = (sender) => {
-        console.log(sender.title() + ' radio button was clicked')
+        // console.log(sender.title() + ' radio button was clicked')
 
         if (sender.title() == 'Proportional') {
             let settingsAttribute = getSettingsAttributeForKey_Value(kNumberSpacingType, kProportionalNumbersSelector)
@@ -280,7 +278,7 @@ function setupPanel(threadDictionary, identifier) {
     threadDictionary[radioButtonOldStyleFiguresID] = radioButtonOldStyleFigures
 
     let numberCaseTargetFunction = (sender) => {
-        console.log(sender.title() + ' radio button was clicked')
+        // console.log(sender.title() + ' radio button was clicked')
 
         if (sender.title() == "Old-style figures") {
             let settingsAttribute = getSettingsAttributeForKey_Value(kNumberCaseType, kLowerCaseNumbersSelector)
@@ -332,7 +330,13 @@ function setupPanel(threadDictionary, identifier) {
     var pushOnOffButtonLowerCase = NSButton.alloc().initWithFrame(NSMakeRect(0,0,72,32))
     pushOnOffButtonLowerCase.setButtonType(NSButtonTypeOnOff)
     pushOnOffButtonLowerCase.setBezelStyle(NSRoundedBezelStyle)
-    pushOnOffButtonLowerCase.setTitle('Tt')
+
+    let lowerCaseAttributedString = NSMutableAttributedString.new().initWithString("Tt")
+    let lowerCaseRange = NSMakeRange(1,1)
+    let lowerCaseFont = getFontForKey_Value(37,1)
+    lowerCaseAttributedString.addAttribute_value_range(NSFontAttributeName,lowerCaseFont,lowerCaseRange)
+    lowerCaseAttributedString.fixAttributesInRange(lowerCaseRange)
+    pushOnOffButtonLowerCase.setAttributedTitle(lowerCaseAttributedString)
     pushOnOffButtonLowerCase.setState(NSOffState)
 
     pushOnOffButtonLowerCase.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(
@@ -348,7 +352,7 @@ function setupPanel(threadDictionary, identifier) {
     threadDictionary[pushOnOffButtonLowerCaseID] = pushOnOffButtonLowerCase
 
     let smallCapsLowerCaseTargetFunction = (sender) => {
-        console.log(sender.title() + ' toggle was clicked')
+        // console.log(sender.title() + ' toggle was clicked')
         // Small Caps Lower Case
         // ID: kLowerCaseType
         //
@@ -388,7 +392,13 @@ function setupPanel(threadDictionary, identifier) {
     var pushOnOffButtonUpperCase = NSButton.alloc().initWithFrame(NSMakeRect(0,0,72,32))
     pushOnOffButtonUpperCase.setButtonType(NSButtonTypeOnOff)
     pushOnOffButtonUpperCase.setBezelStyle(NSRoundedBezelStyle)
-    pushOnOffButtonUpperCase.setTitle('Tt')
+
+    let upperCaseAttributedString = NSMutableAttributedString.new().initWithString("Tt")
+    let upperCaseRange = NSMakeRange(0,1)
+    let upperCaseFont = getFontForKey_Value(38,1)
+    upperCaseAttributedString.addAttribute_value_range(NSFontAttributeName, upperCaseFont, upperCaseRange)
+    upperCaseAttributedString.fixAttributesInRange(upperCaseRange)
+    pushOnOffButtonUpperCase.setAttributedTitle(upperCaseAttributedString)
     pushOnOffButtonUpperCase.setState(NSOffState)
 
     pushOnOffButtonUpperCase.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(
@@ -404,7 +414,7 @@ function setupPanel(threadDictionary, identifier) {
     threadDictionary[pushOnOffButtonUpperCaseID] = pushOnOffButtonUpperCase
 
     let smallCapsUpperCaseTargetFunction = (sender) => {
-        console.log(sender.title() + ' toggle was clicked')
+        // console.log(sender.title() + ' toggle was clicked')
         //Small Caps Upper Case
         // ID: kUpperCaseType
         //
@@ -538,6 +548,16 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
     document.sketchObject.inspectorController().reload()
 }
 
+function getFontForKey_Value(key, value) {
+    let defaultButtonFont = NSFont.boldSystemFontOfSize(13)
+    let settingsAttribute = getSettingsAttributeForKey_Value(key, value)
+    var fontFeatureSettings = defaultButtonFont.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+    const descriptor = defaultButtonFont.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute)
+    const newFont = NSFont.fontWithDescriptor_size(descriptor,13)
+    return newFont
+
+}
+
 function getSettingsAttributeForKey_Value(key, value) {
     let settingsAttribute = {
         [NSFontFeatureSettingsAttribute]: [{
@@ -552,10 +572,14 @@ function getSettingsAttributeForKey_Value(key, value) {
 function updateUI() {
     var document = sketch.getSelectedDocument()
     var textLayer = document.selectedLayers.layers[0]
+    let threadDictionary = NSThread.mainThread().threadDictionary()
+    if (!textLayer) {
+        disableUI(threadDictionary)
+        return
+    }
     var font = textLayer.sketchObject.font()
     var fontSize = font.pointSize()
     var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
-    let threadDictionary = NSThread.mainThread().threadDictionary()
 
     //Start with Default Settings
     var defaultUISettings = {
@@ -570,89 +594,96 @@ function updateUI() {
     // need to do this because fontFeatureSettings only has
     // settings for applied options (doesn't contain state for all options)
     var updatedUISettings = modifyUISettings(fontFeatureSettings, defaultUISettings)
-    console.log(updatedUISettings)
+    // console.log(updatedUISettings)
 
     //Update UI Panel with only one update (to prevent flickering)
     for (var uiSetting in updatedUISettings) {
         if (uiSetting == 'verticalPosition') {
 
         let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
+        verticalPositionPopupButton.setEnabled(true)
             if (updatedUISettings[uiSetting] == 'default') {
-                console.log('Setting UI: Vertical Position = Default Position')
+                // console.log('Setting UI: Vertical Position = Default Position')
                 verticalPositionPopupButton.selectItemWithTitle('Default Position')
             } else if (updatedUISettings[uiSetting] == 'superscript') {
-                console.log('Setting UI: Vertical Position = Superscript')
+                // console.log('Setting UI: Vertical Position = Superscript')
                 verticalPositionPopupButton.selectItemWithTitle('Superscript')
             } else if (updatedUISettings[uiSetting] == 'subscript') {
-                console.log('Setting UI: Vertical Position = Subscript')
+                // console.log('Setting UI: Vertical Position = Subscript')
                 verticalPositionPopupButton.selectItemWithTitle('Subscript')
             } else if (updatedUISettings[uiSetting] == 'ordinals') {
-                console.log('Setting UI: Vertical Position = Ordinals')
+                // console.log('Setting UI: Vertical Position = Ordinals')
                 verticalPositionPopupButton.selectItemWithTitle('Ordinals')
             } else if (updatedUISettings[uiSetting] == 'scientific inferiors') {
-                console.log('Setting UI: Vertical Position = Scientific Notation')
+                // console.log('Setting UI: Vertical Position = Scientific Notation')
                 verticalPositionPopupButton.selectItemWithTitle('Scientific Notation')
             } else {
-                console.log('Error: Attempting update panel state - Out of scope of verticalPosition options')
+                // console.log('Error: Attempting update panel state - Out of scope of verticalPosition options')
             }
 
         } else if (uiSetting == 'numberSpacing') {
             let radioButtonProportional = threadDictionary[radioButtonProportionalID]
             let radioButtonMonospacedOrTabular = threadDictionary[radioButtonMonospacedOrTabularID]
+            radioButtonProportional.setEnabled(true)
+            radioButtonMonospacedOrTabular.setEnabled(true)
 
             if (updatedUISettings[uiSetting] == 'proportional') {
-                console.log('Setting UI: Number Spacing = Proportional')
+                // console.log('Setting UI: Number Spacing = Proportional')
                 radioButtonProportional.setState(NSOnState)
                 radioButtonMonospacedOrTabular.setState(NSOffState)
             } else if (updatedUISettings[uiSetting] == 'monospaced') {
-                console.log('Setting UI: Number Spacing == Monospaced/Tabular')
+                // console.log('Setting UI: Number Spacing == Monospaced/Tabular')
                 radioButtonProportional.setState(NSOffState)
                 radioButtonMonospacedOrTabular.setState(NSOnState)
             } else {
-                console.log('Error: Attempting update panel state - Out of scope of numberSpacing options')
+                // console.log('Error: Attempting update panel state - Out of scope of numberSpacing options')
             }
 
         } else if (uiSetting == 'numberCase') {
             let radioButtonLiningFigures = threadDictionary[radioButtonLiningFiguresID]
             let radioButtonOldStyleFigures = threadDictionary[radioButtonOldStyleFiguresID]
+            radioButtonLiningFigures.setEnabled(true)
+            radioButtonOldStyleFigures.setEnabled(true)
 
             if (updatedUISettings[uiSetting] == 'lining') {
-                console.log('Setting UI: Number Case = Lining figures')
+                // console.log('Setting UI: Number Case = Lining figures')
                 radioButtonLiningFigures.setState(NSOnState)
                 radioButtonOldStyleFigures.setState(NSOffState)
             } else if (updatedUISettings[uiSetting] == 'oldStyle') {
-                console.log('Setting UI: Number Case = Old-style figures')
+                // console.log('Setting UI: Number Case = Old-style figures')
                 radioButtonLiningFigures.setState(NSOffState)
                 radioButtonOldStyleFigures.setState(NSOnState)
             } else {
-                console.log('Error: Attempting to update panel state - Out of scope of numberCase options')
+                // console.log('Error: Attempting to update panel state - Out of scope of numberCase options')
             }
 
         } else if (uiSetting == 'smallCapsUpperCase') {
             let pushOnOffButtonUpperCase = threadDictionary[pushOnOffButtonUpperCaseID]
+            pushOnOffButtonUpperCase.setEnabled(true)
 
             if (updatedUISettings[uiSetting] == false) {
-                console.log('Setting UI: Small Caps Upper Case = Off')
+                // console.log('Setting UI: Small Caps Upper Case = Off')
                 pushOnOffButtonUpperCase.setState(NSOffState)
             } else if (updatedUISettings[uiSetting] == true) {
-                console.log('Setting UI: Small Caps Upper Case = On')
+                // console.log('Setting UI: Small Caps Upper Case = On')
                 pushOnOffButtonUpperCase.setState(NSOnState)
             }
 
         } else if (uiSetting == 'smallCapsLowerCase') {
             let pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID]
+            pushOnOffButtonLowerCase.setEnabled(true)
 
             if (updatedUISettings[uiSetting] == false) {
-                console.log('Setting UI: Small Caps Lower Case = Off')
+                // console.log('Setting UI: Small Caps Lower Case = Off')
                 pushOnOffButtonLowerCase.setState(NSOffState)
             } else if (updatedUISettings[uiSetting] == true) {
-                console.log('Setting UI: Small Caps Lower Case = On')
+                // console.log('Setting UI: Small Caps Lower Case = On')
                 pushOnOffButtonLowerCase.setState(NSOnState)
             }
 
         } else {
-            console.log('Error: Unhandled uiSetting Property')
-            console.log(updatedUISettings[uiSetting])
+            // console.log('Error: Unhandled uiSetting Property')
+            // console.log(updatedUISettings[uiSetting])
         }
     }
 }
@@ -680,7 +711,7 @@ function modifyUISettings(fontFeatureSettings, uiSettings) {
                 // kScientificInferiorsSelector
                 uiSettings.verticalPosition = 'scientific inferiors'
             } else {
-                console.log("Unknown Feature for Vertical Position")
+                // console.log("Unknown Feature for Vertical Position")
             }
         }
 
@@ -694,12 +725,12 @@ function modifyUISettings(fontFeatureSettings, uiSettings) {
                 uiSettings.numberSpacing = 'proportional'
             } else if (featureSelectorIdentifierKey == 2) {
                 // kThirdWidthNumbersSelector
-                console.log("Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)")
+                // console.log("Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)")
             } else if (featureSelectorIdentifierKey == 3) {
                 // kQuarterWidthNumbersSelector
-                console.log("Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals")
+                // console.log("Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals")
             } else {
-                console.log("Unknown feature for Number Spacing")
+                // console.log("Unknown feature for Number Spacing")
             }
         }
 
@@ -712,7 +743,7 @@ function modifyUISettings(fontFeatureSettings, uiSettings) {
                 // kUpperCaseNumbersSelector
                 uiSettings.numberCase = 'lining'
             } else {
-                console.log("Unknown feature for Number Case")
+                // console.log("Unknown feature for Number Case")
             }
         }
 
@@ -726,7 +757,7 @@ function modifyUISettings(fontFeatureSettings, uiSettings) {
                 uiSettings.smallCapsLowerCase = true
             } else if (featureSelectorIdentifierKey == 2) {
                 // kLowerCasePetiteCapsSelector
-                console.log("Unsupported Lower Case Small Caps Feature - Lower Case Petite Caps")
+                // console.log("Unsupported Lower Case Small Caps Feature - Lower Case Petite Caps")
             }
         }
 
@@ -740,7 +771,7 @@ function modifyUISettings(fontFeatureSettings, uiSettings) {
                 uiSettings.smallCapsUpperCase = true
             } else if (featureSelectorIdentifierKey == 2) {
                 // kUpperCasePetiteCapsSelector
-                console.log("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps")
+                // console.log("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps")
             }
         }
     })
@@ -748,3 +779,23 @@ function modifyUISettings(fontFeatureSettings, uiSettings) {
     return uiSettings
 }
 
+function disableUI(threadDictionary) {
+    let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
+    verticalPositionPopupButton.setEnabled(false)
+
+    let radioButtonProportional = threadDictionary[radioButtonProportionalID]
+    let radioButtonMonospacedOrTabular = threadDictionary[radioButtonMonospacedOrTabularID]
+    radioButtonProportional.setEnabled(false)
+    radioButtonMonospacedOrTabular.setEnabled(false)
+
+    let radioButtonLiningFigures = threadDictionary[radioButtonLiningFiguresID]
+    let radioButtonOldStyleFigures = threadDictionary[radioButtonOldStyleFiguresID]
+    radioButtonLiningFigures.setEnabled(false)
+    radioButtonOldStyleFigures.setEnabled(false)
+
+    let pushOnOffButtonUpperCase = threadDictionary[pushOnOffButtonUpperCaseID]
+    pushOnOffButtonUpperCase.setEnabled(false)
+
+    let pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID]
+    pushOnOffButtonLowerCase.setEnabled(false)
+}
