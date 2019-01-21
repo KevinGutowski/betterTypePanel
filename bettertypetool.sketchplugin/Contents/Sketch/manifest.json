@@ -27,11 +27,12 @@
     ],
     "isRoot": true
   },
-  "version": "0.1.0",
+  "version": "0.1.1-0",
+  "description": "A sketch plugin to help manage common OpenType properties",
   "name": "betterTypeTool",
   "identifier": "betterTypeTool",
   "disableCocoaScriptPreprocessor": true,
-  "appcast": "https://raw.githubusercontent.com//master/.appcast.xml",
+  "appcast": "https://raw.githubusercontent.com/KevinGutowski/betterTypePanel/master/.appcast.xml",
   "author": "Kevin Gutowski",
-  "authorEmail": "kgutowski@berkeley.edu"
+  "authorEmail": "kskiviolin@gmail.com"
 }

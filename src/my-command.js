@@ -15,7 +15,6 @@ let radioButtonLiningFiguresID = "com.betterTypePanel.radioButton.liningFigures"
 let radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle"
 
 export default function() {
-    sketch.UI.message("It's alive 🙌")
     runPanel()
 
     setupFramework()
