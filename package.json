@@ -21,5 +21,10 @@
   "devDependencies": {
     "@skpm/builder": "^0.5.11"
   },
-  "author": "Kevin Gutowski <kgutowski@berkeley.edu>"
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KevinGutowski/betterTypePanel"
+  },
+  "author": "Kevin Gutowski <kskiviolin@gmail.com>",
+  "description": "A sketch plugin to help manage common OpenType properties"
 }
