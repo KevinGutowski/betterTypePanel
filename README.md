@@ -1,6 +1,7 @@
 # betterTypeTool
+This plugin lets you easily interact with some common OpenType features. 
 
-_This plugin was created using `skpm`. For a detailed explanation on how things work, checkout the [skpm Readme](https://github.com/skpm/skpm/blob/master/README.md)._
+![Showing How the plugin works](https://media.giphy.com/media/1qWljmoJUq12MOny5L/giphy.gif)
 
 ## TODOS
 - [X] When setting up the UI, set the state of the buttons properly the first time (i.e. check if there is a text object selected or not and then set the state rather than setting the default state of the UI then running `updateUI()`)
@@ -11,7 +12,9 @@ _This plugin was created using `skpm`. For a detailed explanation on how things 
 - [ ] Better Support Multiple layer selection
 - [ ] Ability to select text and apply transformation to just the selected text range
 
-## Usage
+## Building The Plugin
+
+_This plugin was created using `skpm`. For a detailed explanation on how things work, checkout the [skpm Readme](https://github.com/skpm/skpm/blob/master/README.md)._
 
 Install the dependencies
 
