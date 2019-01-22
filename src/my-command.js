@@ -89,12 +89,12 @@ function runPanel() {
 }
 
 function setupPanel(threadDictionary, identifier) {
+    framework("CoreText");
     var panelWidth = 312
     var panelHeight = 210
     let panel = NSPanel.alloc().init()
     panel.setFrame_display(NSMakeRect(0, 0, panelWidth, panelHeight), true)
     panel.setStyleMask(NSTexturedBackgroundWindowMask | NSTitledWindowMask | NSClosableWindowMask)
-    // panel.setBackgroundColor(NSColor.whiteColor());
     panel.title = "betterTypePanel"
 
     panel.center()
@@ -332,7 +332,7 @@ function setupPanel(threadDictionary, identifier) {
 
     let lowerCaseAttributedString = NSMutableAttributedString.new().initWithString("Tt")
     let lowerCaseRange = NSMakeRange(1,1)
-    let lowerCaseFont = getFontForKey_Value(37,1)
+    let lowerCaseFont = getFontForKey_Value(kLowerCaseType,kLowerCaseSmallCapsSelector)
     lowerCaseAttributedString.addAttribute_value_range(NSFontAttributeName,lowerCaseFont,lowerCaseRange)
     lowerCaseAttributedString.fixAttributesInRange(lowerCaseRange)
     pushOnOffButtonLowerCase.setAttributedTitle(lowerCaseAttributedString)
@@ -394,7 +394,7 @@ function setupPanel(threadDictionary, identifier) {
 
     let upperCaseAttributedString = NSMutableAttributedString.new().initWithString("Tt")
     let upperCaseRange = NSMakeRange(0,1)
-    let upperCaseFont = getFontForKey_Value(38,1)
+    let upperCaseFont = getFontForKey_Value(kUpperCaseType,kUpperCaseSmallCapsSelector)
     upperCaseAttributedString.addAttribute_value_range(NSFontAttributeName, upperCaseFont, upperCaseRange)
     upperCaseAttributedString.fixAttributesInRange(upperCaseRange)
     pushOnOffButtonUpperCase.setAttributedTitle(upperCaseAttributedString)
@@ -548,7 +548,7 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
 }
 
 function getFontForKey_Value(key, value) {
-    let defaultButtonFont = NSFont.boldSystemFontOfSize(13)
+    let defaultButtonFont = NSFont.systemFontOfSize(13)
     let settingsAttribute = getSettingsAttributeForKey_Value(key, value)
     var fontFeatureSettings = defaultButtonFont.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
     const descriptor = defaultButtonFont.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute)
