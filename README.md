@@ -1,4 +1,4 @@
-# betterTypeTool (Beta)
+# betterTypePanel (Beta)
 This plugin lets you easily interact with some common OpenType features. I wanted something to make it easier to apply small caps in sketch (rather than having to go under Show Fonts -> Typography -> Find Option in Giant Typography Pane). It's still early stages for this little plugin so there are likely bugs to be had. Feel free to make an issue and I'll try to get to it. 
 
 ![Showing How the plugin works](https://media.giphy.com/media/1qWljmoJUq12MOny5L/giphy.gif)
