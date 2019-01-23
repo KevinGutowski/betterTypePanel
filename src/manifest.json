@@ -4,7 +4,7 @@
   "icon": "icon.png",
   "commands": [
     {
-      "name": "my-command",
+      "name": "Toggle betterTypePanel",
       "identifier": "my-command-identifier",
       "script": "./my-command.js",
       "shortcut": "control cmd t"
@@ -21,7 +21,7 @@
     }
   ],
   "menu": {
-    "title": "betterTypeTool",
+    "title": "betterTypePanel",
     "items": [
       "my-command-identifier"
     ],
