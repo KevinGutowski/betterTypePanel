@@ -1,15 +1,17 @@
-# betterTypeTool
-This plugin lets you easily interact with some common OpenType features. 
+# betterTypePanel (Beta)
+This plugin lets you easily interact with some common OpenType features. I wanted something to make it easier to apply small caps in sketch (rather than having to go under Show Fonts -> Typography -> Find Option in Giant Typography Pane). It's still early stages for this little plugin so there are likely bugs to be had. Feel free to make an issue and I'll try to get to it. 
 
 ![Showing How the plugin works](https://media.giphy.com/media/1qWljmoJUq12MOny5L/giphy.gif)
 
 ## TODOS
 - [X] When setting up the UI, set the state of the buttons properly the first time (i.e. check if there is a text object selected or not and then set the state rather than setting the default state of the UI then running `updateUI()`)
 - [ ] Properly style small caps buttons
+- [ ] Basic Support for applying properties to multiple selected Text Layers
 - [ ] Support Fractional Forms
 
 ## Later Goals
 - [ ] Better Support Multiple layer selection
+  - [ ] Resolve applying small caps to layers with different fonts
 - [ ] Ability to select text and apply transformation to just the selected text range
 
 ## Building The Plugin
