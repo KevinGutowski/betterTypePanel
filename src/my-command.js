@@ -389,16 +389,28 @@ function setupPanel(threadDictionary, identifier) {
     lowerCaseStackView.setTranslatesAutoresizingMaskIntoConstraints(false)
 
     var pushOnOffButtonUpperCase = NSButton.alloc().initWithFrame(NSMakeRect(0,0,72,32))
-    pushOnOffButtonUpperCase.setButtonType(NSButtonTypeOnOff)
     pushOnOffButtonUpperCase.setBezelStyle(NSRoundedBezelStyle)
+    pushOnOffButtonUpperCase.setButtonType(NSButtonTypeToggle)
 
-    let upperCaseAttributedString = NSMutableAttributedString.new().initWithString("Tt")
+    // Define Attributed titles for all the button states
     let upperCaseRange = NSMakeRange(0,1)
     let upperCaseFont = getFontForKey_Value(kUpperCaseType,kUpperCaseSmallCapsSelector)
-    upperCaseAttributedString.addAttribute_value_range(NSFontAttributeName, upperCaseFont, upperCaseRange)
-    upperCaseAttributedString.fixAttributesInRange(upperCaseRange)
-    pushOnOffButtonUpperCase.setAttributedTitle(upperCaseAttributedString)
+
+    // Selected is the styles for both the ON state and the Pressed State
+    let upperCaseSelectedAttributedString = NSMutableAttributedString.new().initWithString("Tt")
+    upperCaseSelectedAttributedString.addAttribute_value_range(NSFontAttributeName, upperCaseFont, upperCaseRange)
+    upperCaseSelectedAttributedString.addAttribute_value_range(NSForegroundColorAttributeName, NSColor.selectedControlTextColor(), upperCaseRange)
+    upperCaseSelectedAttributedString.fixAttributesInRange(upperCaseRange)
+
+    // Off Styles
+    let upperCaseOffAttributedString = NSMutableAttributedString.new().initWithString("Tt")
+    upperCaseOffAttributedString.addAttribute_value_range(NSFontAttributeName, upperCaseFont, upperCaseRange)
+    upperCaseOffAttributedString.addAttribute_value_range(NSForegroundColorAttributeName, NSColor.controlAccentColor(), upperCaseRange)
+    upperCaseOffAttributedString.fixAttributesInRange(upperCaseRange)
+
     pushOnOffButtonUpperCase.setState(NSOffState)
+    pushOnOffButtonUpperCase.setAttributedTitle(upperCaseOffAttributedString)
+    pushOnOffButtonUpperCase.setAttributedAlternateTitle(upperCaseSelectedAttributedString)
 
     pushOnOffButtonUpperCase.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(
         pushOnOffButtonUpperCase,
@@ -429,10 +441,17 @@ function setupPanel(threadDictionary, identifier) {
         // Display upper-case glyphs as petite caps
         //
         if (sender.state() == 0) {
-            //Need to set to default setting
+            // button is in OFF state now
+            pushOnOffButtonUpperCase.setButtonType(NSButtonTypeToggle)
+            sender.setAttributedTitle(upperCaseOffAttributedString)
+
             let settingsAttribute = getSettingsAttributeForKey_Value(kUpperCaseType, kDefaultUpperCaseSelector)
             updateFontFeatureSettingsAttribute(settingsAttribute)
-        } else {
+        } else if (sender.state() == 1) {
+            // button is in ON State now
+            pushOnOffButtonUpperCase.setButtonType(NSButtonTypePushOnPushOff)
+            sender.setAttributedTitle(upperCaseSelectedAttributedString)
+
             let settingsAttribute = getSettingsAttributeForKey_Value(kUpperCaseType, kUpperCaseSmallCapsSelector)
             updateFontFeatureSettingsAttribute(settingsAttribute)
         }
@@ -548,7 +567,7 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
 }
 
 function getFontForKey_Value(key, value) {
-    let defaultButtonFont = NSFont.systemFontOfSize(13)
+    let defaultButtonFont = NSFont.controlContentFontOfSize(13)
     let settingsAttribute = getSettingsAttributeForKey_Value(key, value)
     var fontFeatureSettings = defaultButtonFont.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
     const descriptor = defaultButtonFont.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute)
