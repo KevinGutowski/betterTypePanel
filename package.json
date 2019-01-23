@@ -1,11 +1,11 @@
 {
-  "name": "bettertypetool",
+  "name": "bettertypepanel",
   "version": "0.1.1-0",
   "engines": {
     "sketch": ">=3.0"
   },
   "skpm": {
-    "name": "betterTypeTool",
+    "name": "betterTypePanel",
     "manifest": "src/manifest.json",
     "main": "bettertypetool.sketchplugin",
     "assets": [

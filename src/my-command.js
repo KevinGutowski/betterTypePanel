@@ -83,9 +83,13 @@ function runPanel() {
     let threadDictionary = NSThread.mainThread().threadDictionary()
 
     // If there is already a panel, prevent the plugin from running again
-    if (threadDictionary[threadIdentifier]) return
-    threadDictionary.panelOpen = true
-    setupPanel(threadDictionary, threadIdentifier)
+    if (threadDictionary[threadIdentifier]) {
+        closePanel(threadDictionary[threadIdentifier], threadDictionary, threadIdentifier)
+    } else {
+        threadDictionary.panelOpen = true
+        setupPanel(threadDictionary, threadIdentifier)
+    }
+
 }
 
 function setupPanel(threadDictionary, identifier) {
@@ -479,14 +483,7 @@ function setupPanel(threadDictionary, identifier) {
 
     var closeButton = panel.standardWindowButton(NSWindowCloseButton)
     closeButton.setCOSJSTargetFunction(function(sender) {
-        panel.close()
-
-        //Remove the reference to the panel
-        threadDictionary.removeObjectForKey(identifier)
-        threadDictionary.panelOpen = false
-
-        //Stop this script
-        COScript.currentCOScript().setShouldKeepAround_(false)
+        closePanel(panel, threadDictionary, identifier)
     })
 }
 
@@ -797,4 +794,15 @@ function disableUI(threadDictionary) {
 
     let pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID]
     pushOnOffButtonLowerCase.setEnabled(false)
+}
+
+function closePanel(panel, threadDictionary, threadIdentifier) {
+        panel.close()
+
+        //Remove the reference to the panel
+        threadDictionary.removeObjectForKey(threadIdentifier)
+        threadDictionary.panelOpen = false
+
+        //Stop this script
+        COScript.currentCOScript().setShouldKeepAround_(false)
 }
