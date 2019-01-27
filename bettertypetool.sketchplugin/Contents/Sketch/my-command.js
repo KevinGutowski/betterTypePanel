@@ -700,7 +700,6 @@ function updateUI() {
 }
 
 function modifyUISettings(fontFeatureSettings, uiSettings) {
-  console.log(fontFeatureSettings);
   fontFeatureSettings.forEach(function (featureSetting) {
     var featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey];
     var featureSelectorIdentifierKey = featureSetting[NSFontFeatureSelectorIdentifierKey];
