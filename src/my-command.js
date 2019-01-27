@@ -540,7 +540,17 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
     const descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute)
 
     const newFont = NSFont.fontWithDescriptor_size(descriptor,fontSize)
-    textLayer.sketchObject.setFont(newFont)
+
+    if (textLayer.sketchObject.isEditingText() == 1) {
+        // In Edit Mode
+        console.log("In Edit Mode")
+        let textStorage = textLayer.sketchObject.editingDelegate().textStorage()
+        textStorage.beginEditing()
+        textStorage.setAttributes_range(settingsAttribute, NSMakeRange(0,5))
+        textStorage.endEditing()
+    } else {
+        textLayer.sketchObject.setFont(newFont)
+    }
     document.sketchObject.inspectorController().reload()
 }
 
