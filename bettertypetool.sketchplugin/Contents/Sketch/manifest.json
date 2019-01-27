@@ -27,7 +27,7 @@
     ],
     "isRoot": true
   },
-  "version": "0.1.1-3",
+  "version": "0.1.1-4",
   "description": "A sketch plugin to help manage common OpenType properties",
   "name": "betterTypePanel",
   "identifier": "betterTypePanel",
