@@ -545,7 +545,18 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
   var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
   var descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute);
   var newFont = NSFont.fontWithDescriptor_size(descriptor, fontSize);
-  textLayer.sketchObject.setFont(newFont);
+
+  if (textLayer.sketchObject.isEditingText() == 1) {
+    // In Edit Mode
+    console.log("In Edit Mode");
+    var textStorage = textLayer.sketchObject.editingDelegate().textStorage();
+    textStorage.beginEditing();
+    textStorage.setAttributes_range(settingsAttribute, NSMakeRange(0, 5));
+    textStorage.endEditing();
+  } else {
+    textLayer.sketchObject.setFont(newFont);
+  }
+
   document.sketchObject.inspectorController().reload();
 }
 
@@ -597,8 +608,14 @@ function updateUI() {
     // settings for applied options (doesn't contain state for all options)
 
   };
-  var updatedUISettings = modifyUISettings(fontFeatureSettings, defaultUISettings); // console.log(updatedUISettings)
-  //Update UI Panel with only one update (to prevent flickering)
+  var updatedUISettings;
+
+  if (fontFeatureSettings) {
+    updatedUISettings = modifyUISettings(fontFeatureSettings, defaultUISettings);
+  } else {
+    updatedUISettings = defaultUISettings;
+  } //Update UI Panel with only one update (to prevent flickering)
+
 
   for (var uiSetting in updatedUISettings) {
     if (uiSetting == 'verticalPosition') {
@@ -683,6 +700,7 @@ function updateUI() {
 }
 
 function modifyUISettings(fontFeatureSettings, uiSettings) {
+  console.log(fontFeatureSettings);
   fontFeatureSettings.forEach(function (featureSetting) {
     var featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey];
     var featureSelectorIdentifierKey = featureSetting[NSFontFeatureSelectorIdentifierKey];
