@@ -608,8 +608,14 @@ function updateUI() {
     // settings for applied options (doesn't contain state for all options)
 
   };
-  var updatedUISettings = modifyUISettings(fontFeatureSettings, defaultUISettings); // console.log(updatedUISettings)
-  //Update UI Panel with only one update (to prevent flickering)
+  var updatedUISettings;
+
+  if (fontFeatureSettings) {
+    updatedUISettings = modifyUISettings(fontFeatureSettings, defaultUISettings);
+  } else {
+    updatedUISettings = defaultUISettings;
+  } //Update UI Panel with only one update (to prevent flickering)
+
 
   for (var uiSetting in updatedUISettings) {
     if (uiSetting == 'verticalPosition') {
@@ -694,6 +700,7 @@ function updateUI() {
 }
 
 function modifyUISettings(fontFeatureSettings, uiSettings) {
+  console.log(fontFeatureSettings);
   fontFeatureSettings.forEach(function (featureSetting) {
     var featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey];
     var featureSelectorIdentifierKey = featureSetting[NSFontFeatureSelectorIdentifierKey];

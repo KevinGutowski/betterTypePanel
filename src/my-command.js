@@ -599,8 +599,12 @@ function updateUI() {
     // Update uiSettings array
     // need to do this because fontFeatureSettings only has
     // settings for applied options (doesn't contain state for all options)
-    var updatedUISettings = modifyUISettings(fontFeatureSettings, defaultUISettings)
-    // console.log(updatedUISettings)
+    var updatedUISettings
+    if (fontFeatureSettings) {
+        updatedUISettings = modifyUISettings(fontFeatureSettings, defaultUISettings)
+    } else {
+        updatedUISettings = defaultUISettings
+    }
 
     //Update UI Panel with only one update (to prevent flickering)
     for (var uiSetting in updatedUISettings) {
