@@ -117,7 +117,7 @@ function setupPanel(threadDictionary, identifier) {
 
     // MARK: SETUP ROW 1
     var verticalPositionLabel = createTextField({
-        text: "Vertical Position:",
+        text: "Number Position:",
         frame: NSMakeRect(0,0,column1width,17),
         alignment: NSTextAlignmentRight
     })
