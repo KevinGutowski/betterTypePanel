@@ -337,8 +337,8 @@ function setupPanel(threadDictionary, identifier) {
     let lowerCaseAttributedString = NSMutableAttributedString.new().initWithString("Tt")
     let lowerCaseRange = NSMakeRange(1,1)
     let lowerCaseFont = getFontForKey_Value(37,1)
+    lowerCaseAttributedString.setAlignment_range(NSTextAlignmentCenter, NSMakeRange(0,2))
     lowerCaseAttributedString.addAttribute_value_range(NSFontAttributeName,lowerCaseFont,lowerCaseRange)
-    lowerCaseAttributedString.fixAttributesInRange(lowerCaseRange)
     pushOnOffButtonLowerCase.setAttributedTitle(lowerCaseAttributedString)
     pushOnOffButtonLowerCase.setState(NSOffState)
 
@@ -399,8 +399,9 @@ function setupPanel(threadDictionary, identifier) {
     let upperCaseAttributedString = NSMutableAttributedString.new().initWithString("Tt")
     let upperCaseRange = NSMakeRange(0,1)
     let upperCaseFont = getFontForKey_Value(38,1)
+    upperCaseAttributedString.setAlignment_range(NSTextAlignmentCenter, NSMakeRange(0,2))
+    let centerAlignUpperCase = NSMutableParagraphStyle.new().init().setAlignment(NSTextAlignmentCenter)
     upperCaseAttributedString.addAttribute_value_range(NSFontAttributeName, upperCaseFont, upperCaseRange)
-    upperCaseAttributedString.fixAttributesInRange(upperCaseRange)
     pushOnOffButtonUpperCase.setAttributedTitle(upperCaseAttributedString)
     pushOnOffButtonUpperCase.setState(NSOffState)
 
