@@ -588,6 +588,9 @@ function updateUI() {
   if (!textLayer) {
     disableUI(threadDictionary);
     return;
+  } else if (!(textLayer.type == "Text")) {
+    disableUI(threadDictionary);
+    return;
   }
 
   var font = textLayer.sketchObject.font();
