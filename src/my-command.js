@@ -578,18 +578,32 @@ function getSettingsAttributeForKey_Value(key, value) {
 
 function updateUI() {
     var document = sketch.getSelectedDocument()
-    var textLayer = document.selectedLayers.layers[0]
+    var selectedLayers = document.selectedLayers.layers
     let threadDictionary = NSThread.mainThread().threadDictionary()
-    if (!textLayer) {
-        disableUI(threadDictionary)
-        return
-    } else if (!(textLayer.type == "Text")) {
+
+    if (!selectedLayers) {
         disableUI(threadDictionary)
         return
     }
+
+    var textLayers = selectedLayers.filter(layer => layer.type == "Text")
+    if (textLayers.length == 0) {
+        disableUI(threadDictionary)
+        return
+    }
+
+    var textLayer = textLayers[0]
     var font = textLayer.sketchObject.font()
-    var fontSize = font.pointSize()
     var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+
+    var textLayersFeatureSettings = []
+    textLayers.forEach(layer => {
+        let font = layer.sketchObject.font()
+        let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+        textLayersFeatureSettings.push(fontFeatureSettings)
+    })
+
+    console.log(textLayersFeatureSettings)
 
     //Start with Default Settings
     var defaultUISettings = {
@@ -604,10 +618,21 @@ function updateUI() {
     // need to do this because fontFeatureSettings only has
     // settings for applied options (doesn't contain state for all options)
     var updatedUISettings
-    if (fontFeatureSettings) {
-        updatedUISettings = modifyUISettings(fontFeatureSettings, defaultUISettings)
-    } else {
+
+    // Check to see if the textLayersFeatureSettings is full of null entries
+    var isFeatureSettingsArrayAllNull = true
+    for (let i = 0; i < textLayersFeatureSettings.length; i++) {
+        if (textLayersFeatureSettings[i] != null) {
+            isFeatureSettingsArrayAllNull = false
+            break
+        }
+    }
+    console.log(isFeatureSettingsArrayAllNull)
+    if (isFeatureSettingsArrayAllNull) {
+        // Bc the array is all null then just set the default UI settings
         updatedUISettings = defaultUISettings
+    } else {
+        updatedUISettings = modifyUISettings(fontFeatureSettings, defaultUISettings)
     }
 
     //Update UI Panel with only one update (to prevent flickering)

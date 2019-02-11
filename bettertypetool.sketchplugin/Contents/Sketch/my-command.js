@@ -582,20 +582,33 @@ function getSettingsAttributeForKey_Value(key, value) {
 
 function updateUI() {
   var document = sketch__WEBPACK_IMPORTED_MODULE_0___default.a.getSelectedDocument();
-  var textLayer = document.selectedLayers.layers[0];
+  var selectedLayers = document.selectedLayers.layers;
   var threadDictionary = NSThread.mainThread().threadDictionary();
 
-  if (!textLayer) {
-    disableUI(threadDictionary);
-    return;
-  } else if (!(textLayer.type == "Text")) {
+  if (!selectedLayers) {
     disableUI(threadDictionary);
     return;
   }
 
+  var textLayers = selectedLayers.filter(function (layer) {
+    return layer.type == "Text";
+  });
+
+  if (textLayers.length == 0) {
+    disableUI(threadDictionary);
+    return;
+  }
+
+  var textLayer = textLayers[0];
   var font = textLayer.sketchObject.font();
-  var fontSize = font.pointSize();
-  var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]; //Start with Default Settings
+  var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
+  var textLayersFeatureSettings = [];
+  textLayers.forEach(function (layer) {
+    var font = layer.sketchObject.font();
+    var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
+    textLayersFeatureSettings.push(fontFeatureSettings);
+  });
+  console.log(textLayersFeatureSettings); //Start with Default Settings
 
   var defaultUISettings = {
     'verticalPosition': 'default',
@@ -612,12 +625,24 @@ function updateUI() {
     // settings for applied options (doesn't contain state for all options)
 
   };
-  var updatedUISettings;
+  var updatedUISettings; // Check to see if the textLayersFeatureSettings is full of null entries
 
-  if (fontFeatureSettings) {
-    updatedUISettings = modifyUISettings(fontFeatureSettings, defaultUISettings);
-  } else {
+  var isFeatureSettingsArrayAllNull = true;
+
+  for (var i = 0; i < textLayersFeatureSettings.length; i++) {
+    if (textLayersFeatureSettings[i] != null) {
+      isFeatureSettingsArrayAllNull = false;
+      break;
+    }
+  }
+
+  console.log(isFeatureSettingsArrayAllNull);
+
+  if (isFeatureSettingsArrayAllNull) {
+    // Bc the array is all null then just set the default UI settings
     updatedUISettings = defaultUISettings;
+  } else {
+    updatedUISettings = modifyUISettings(fontFeatureSettings, defaultUISettings);
   } //Update UI Panel with only one update (to prevent flickering)
 
 
