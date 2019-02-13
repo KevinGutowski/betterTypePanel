@@ -5,7 +5,7 @@ This plugin lets you easily interact with some common OpenType features. I wante
 
 ## TODOS
 - [X] When setting up the UI, set the state of the buttons properly the first time (i.e. check if there is a text object selected or not and then set the state rather than setting the default state of the UI then running `updateUI()`)
-- [ ] Properly style small caps buttons
+- [X] Properly style small caps buttons
 - [ ] Basic Support for applying properties to multiple selected Text Layers
 - [ ] Support Fractional Forms
 
@@ -13,6 +13,7 @@ This plugin lets you easily interact with some common OpenType features. I wante
 - [ ] Better Support Multiple layer selection
   - [ ] Resolve applying small caps to layers with different fonts
 - [ ] Ability to select text and apply transformation to just the selected text range
+- [ ] Text Style support (I hope Sketch will consider tweaking things on their end rather me hacking it together)
 
 ## Building The Plugin
 
