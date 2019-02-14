@@ -13,6 +13,7 @@ This plugin lets you easily interact with some common OpenType features. I wante
 - [ ] Better Support Multiple layer selection
   - [ ] Resolve applying small caps to layers with different fonts
 - [ ] Ability to select text and apply transformation to just the selected text range
+- [ ] More OpenType Features! (Ligatures, Stylistic Sets, etc)
 - [ ] Text Style support (I hope Sketch will consider tweaking things on their end rather me hacking it together)
 
 ## Building The Plugin
