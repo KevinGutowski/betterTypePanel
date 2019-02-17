@@ -580,7 +580,7 @@ function updateUI() {
     var selectedLayers = document.selectedLayers.layers
     let threadDictionary = NSThread.mainThread().threadDictionary()
 
-    if (!selectedLayers) {
+    if (selectedLayers == null) {
         disableUI(threadDictionary)
         return
     }
@@ -779,94 +779,95 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
 
     for (var i = 0; i < textLayersFeatureSettings.length; i++) {
         let currentLayerSettings = getDefaultUISettings()
+        if (textLayersFeatureSettings[i] != null) {
+            textLayersFeatureSettings[i].forEach(function(featureSetting) {
 
-        textLayersFeatureSettings[i].forEach(function(featureSetting) {
+                const featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey]
+                const featureSelectorIdentifierKey = featureSetting[NSFontFeatureSelectorIdentifierKey]
 
-            const featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey]
-            const featureSelectorIdentifierKey = featureSetting[NSFontFeatureSelectorIdentifierKey]
-
-            if (featureTypeIdentifierKey == 10) {
-                // kVerticalPosition
-                if (featureSelectorIdentifierKey == 0) {
-                    // kNormalPositionSelector
-                    currentLayerSettings.verticalPosition = 'default'
-                } else if (featureSelectorIdentifierKey == 1) {
-                    // kSuperiorsSelector
-                    currentLayerSettings.verticalPosition = 'superscript'
-                } else if (featureSelectorIdentifierKey == 2) {
-                    // kInferiorsSelector
-                    currentLayerSettings.verticalPosition = 'subscript'
-                } else if (featureSelectorIdentifierKey == 3) {
-                    // kOrdinalsSelector
-                    currentLayerSettings.verticalPosition = 'ordinals'
-                } else if (featureSelectorIdentifierKey == 4) {
-                    // kScientificInferiorsSelector
-                    currentLayerSettings.verticalPosition = 'scientific inferiors'
-                } else {
-                    logWarning("betterTypeTool: Unknown Feature for Vertical Position")
+                if (featureTypeIdentifierKey == 10) {
+                    // kVerticalPosition
+                    if (featureSelectorIdentifierKey == 0) {
+                        // kNormalPositionSelector
+                        currentLayerSettings.verticalPosition = 'default'
+                    } else if (featureSelectorIdentifierKey == 1) {
+                        // kSuperiorsSelector
+                        currentLayerSettings.verticalPosition = 'superscript'
+                    } else if (featureSelectorIdentifierKey == 2) {
+                        // kInferiorsSelector
+                        currentLayerSettings.verticalPosition = 'subscript'
+                    } else if (featureSelectorIdentifierKey == 3) {
+                        // kOrdinalsSelector
+                        currentLayerSettings.verticalPosition = 'ordinals'
+                    } else if (featureSelectorIdentifierKey == 4) {
+                        // kScientificInferiorsSelector
+                        currentLayerSettings.verticalPosition = 'scientific inferiors'
+                    } else {
+                        logWarning("betterTypeTool: Unknown Feature for Vertical Position")
+                    }
                 }
-            }
 
-            if (featureTypeIdentifierKey == 6) {
-                //kNumberSpacing
-                if (featureSelectorIdentifierKey == 0) {
-                    // kMonospacedNumbersSelector
-                    currentLayerSettings.numberSpacing = 'monospaced'
-                } else if (featureSelectorIdentifierKey == 1) {
-                    // kProportionalNumbersSelector
-                    currentLayerSettings.numberSpacing = 'proportional'
-                } else if (featureSelectorIdentifierKey == 2) {
-                    // kThirdWidthNumbersSelector
-                     logWarning("betterTypeTool: Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)")
-                } else if (featureSelectorIdentifierKey == 3) {
-                    // kQuarterWidthNumbersSelector
-                    logWarning("betterTypeTool: Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals")
-                } else {
-                    logWarning("betterTypeTool: Unknown feature for Number Spacing")
+                if (featureTypeIdentifierKey == 6) {
+                    //kNumberSpacing
+                    if (featureSelectorIdentifierKey == 0) {
+                        // kMonospacedNumbersSelector
+                        currentLayerSettings.numberSpacing = 'monospaced'
+                    } else if (featureSelectorIdentifierKey == 1) {
+                        // kProportionalNumbersSelector
+                        currentLayerSettings.numberSpacing = 'proportional'
+                    } else if (featureSelectorIdentifierKey == 2) {
+                        // kThirdWidthNumbersSelector
+                         logWarning("betterTypeTool: Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)")
+                    } else if (featureSelectorIdentifierKey == 3) {
+                        // kQuarterWidthNumbersSelector
+                        logWarning("betterTypeTool: Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals")
+                    } else {
+                        logWarning("betterTypeTool: Unknown feature for Number Spacing")
+                    }
                 }
-            }
 
-            if (featureTypeIdentifierKey == 21) {
-                // kNumberCaseType
-                if (featureSelectorIdentifierKey == 0) {
-                    // kLowerCaseNumbersSelector
-                    currentLayerSettings.numberCase = 'oldStyle'
-                } else if (featureSelectorIdentifierKey == 1) {
-                    // kUpperCaseNumbersSelector
-                    currentLayerSettings.numberCase = 'lining'
-                } else {
-                    logWarning("betterTypeTool: Unknown feature for Number Case")
+                if (featureTypeIdentifierKey == 21) {
+                    // kNumberCaseType
+                    if (featureSelectorIdentifierKey == 0) {
+                        // kLowerCaseNumbersSelector
+                        currentLayerSettings.numberCase = 'oldStyle'
+                    } else if (featureSelectorIdentifierKey == 1) {
+                        // kUpperCaseNumbersSelector
+                        currentLayerSettings.numberCase = 'lining'
+                    } else {
+                        logWarning("betterTypeTool: Unknown feature for Number Case")
+                    }
                 }
-            }
 
-            if (featureTypeIdentifierKey == 37) {
-                // kLowerCase
-                if (featureSelectorIdentifierKey == 0) {
-                    // kDefaultLowerCaseSelector (aka OFF)
-                    currentLayerSettings.smallCapsLowerCase = false
-                } else if (featureSelectorIdentifierKey == 1) {
-                    // kLowerCaseSmallCapsSelector
-                    currentLayerSettings.smallCapsLowerCase = true
-                } else if (featureSelectorIdentifierKey == 2) {
-                    // kLowerCasePetiteCapsSelector
-                    logWarning("Unsupported Lower Case Small Caps Feature - Lower Case Petite Caps")
+                if (featureTypeIdentifierKey == 37) {
+                    // kLowerCase
+                    if (featureSelectorIdentifierKey == 0) {
+                        // kDefaultLowerCaseSelector (aka OFF)
+                        currentLayerSettings.smallCapsLowerCase = false
+                    } else if (featureSelectorIdentifierKey == 1) {
+                        // kLowerCaseSmallCapsSelector
+                        currentLayerSettings.smallCapsLowerCase = true
+                    } else if (featureSelectorIdentifierKey == 2) {
+                        // kLowerCasePetiteCapsSelector
+                        logWarning("Unsupported Lower Case Small Caps Feature - Lower Case Petite Caps")
+                    }
                 }
-            }
 
-            if (featureTypeIdentifierKey == 38) {
-                // kUpperCase
-                if (featureSelectorIdentifierKey == 0) {
-                    // kDefaultUpperCaseSelector (aka OFF)
-                    currentLayerSettings.smallCapsUpperCase = false
-                } else if (featureSelectorIdentifierKey == 1) {
-                    // kUpperCaseSmallCapsSelector
-                    currentLayerSettings.smallCapsUpperCase = true
-                } else if (featureSelectorIdentifierKey == 2) {
-                    // kUpperCasePetiteCapsSelector
-                    logWarning("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps")
+                if (featureTypeIdentifierKey == 38) {
+                    // kUpperCase
+                    if (featureSelectorIdentifierKey == 0) {
+                        // kDefaultUpperCaseSelector (aka OFF)
+                        currentLayerSettings.smallCapsUpperCase = false
+                    } else if (featureSelectorIdentifierKey == 1) {
+                        // kUpperCaseSmallCapsSelector
+                        currentLayerSettings.smallCapsUpperCase = true
+                    } else if (featureSelectorIdentifierKey == 2) {
+                        // kUpperCasePetiteCapsSelector
+                        logWarning("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps")
+                    }
                 }
-            }
-        });
+            })
+        }
 
         // Push current layer properties onto settingsCollection
         for (var key in currentLayerSettings) {
@@ -928,6 +929,8 @@ function getDefaultUISettings() {
         'numberCase': 'lining', // 'lining', 'oldStyle'
         'smallCapsLowerCase': false, // bool
         'smallCapsUpperCase': false // bool
+        // If updating this list remember to update the default updatedUISettings
+        // TODO: Refactor so that the Default UI settings is in one place.
     }
 }
 
