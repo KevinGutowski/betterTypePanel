@@ -138,10 +138,12 @@ function setupPanel(threadDictionary, identifier) {
         'Superscript',
         'Subscript',
         'Ordinals',
-        'Scientific Notation'
+        'Scientific Notation',
+        'Multiple'
     ])
 
     threadDictionary[verticalPositionPopupButtonID] = verticalPositionPopupButton
+    verticalPositionPopupButton.itemWithTitle('Multiple').setHidden(true)
 
     let verticalPositionTargetFuntion = (sender) => {
         // console.log(sender.title() + ' dropdown button was selected')
@@ -534,25 +536,22 @@ function createTextField({text, frame, alignment, fontSize = 13}) {
 
 function updateFontFeatureSettingsAttribute(settingsAttribute) {
     var document = sketch.getSelectedDocument();
-    var textLayer = document.selectedLayers.layers[0]
-    var font = textLayer.sketchObject.font()
-    var fontSize = font.pointSize()
-    var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
-    const descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute)
+    var selectedLayers = document.selectedLayers.layers
+    var textLayers = selectedLayers.filter(layer => layer.type == "Text")
 
-    const newFont = NSFont.fontWithDescriptor_size(descriptor,fontSize)
+    //TODO: Support During Edit State of Text
+    // if (textLayer.sketchObject.isEditingText() == 1)
 
-    if (textLayer.sketchObject.isEditingText() == 1) {
-        // In Edit Mode
-        console.log("In Edit Mode")
-        let textStorage = textLayer.sketchObject.editingDelegate().textStorage()
-        textStorage.beginEditing()
-        textStorage.setAttributes_range(settingsAttribute, NSMakeRange(0,5))
-        textStorage.endEditing()
-    } else {
+    textLayers.forEach(textLayer => {
+        let font = textLayer.sketchObject.font()
+        let fontSize = font.pointSize()
+        let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+        let descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute)
+        let newFont = NSFont.fontWithDescriptor_size(descriptor,fontSize)
         textLayer.sketchObject.setFont(newFont)
-    }
+    })
     document.sketchObject.inspectorController().reload()
+    updateUI()
 }
 
 function getFontForKey_Value(key, value) {
@@ -578,61 +577,102 @@ function getSettingsAttributeForKey_Value(key, value) {
 
 function updateUI() {
     var document = sketch.getSelectedDocument()
-    var textLayer = document.selectedLayers.layers[0]
+    var selectedLayers = document.selectedLayers.layers
     let threadDictionary = NSThread.mainThread().threadDictionary()
-    if (!textLayer) {
-        disableUI(threadDictionary)
-        return
-    } else if (!(textLayer.type == "Text")) {
+
+    if (!selectedLayers) {
         disableUI(threadDictionary)
         return
     }
+
+    var textLayers = selectedLayers.filter(layer => layer.type == "Text")
+    if (textLayers.length == 0) {
+        disableUI(threadDictionary)
+        return
+    }
+
+    var textLayer = textLayers[0]
     var font = textLayer.sketchObject.font()
-    var fontSize = font.pointSize()
     var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
 
-    //Start with Default Settings
-    var defaultUISettings = {
-        'verticalPosition': 'default', // 'default', 'superscript', 'subscript', 'ordinals', 'scientific inferiors'
-        'numberSpacing': 'proportional', // 'proportional', 'monospaced'
-        'numberCase': 'lining', // 'lining', 'oldStyle'
-        'smallCapsLowerCase': false, // bool
-        'smallCapsUpperCase': false // bool
-    }
+    var textLayersFeatureSettings = []
+    textLayers.forEach(layer => {
+        let font = layer.sketchObject.font()
+        let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+        textLayersFeatureSettings.push(fontFeatureSettings)
+    })
 
     // Update uiSettings array
     // need to do this because fontFeatureSettings only has
     // settings for applied options (doesn't contain state for all options)
     var updatedUISettings
-    if (fontFeatureSettings) {
-        updatedUISettings = modifyUISettings(fontFeatureSettings, defaultUISettings)
+
+    // Check to see if the textLayersFeatureSettings is full of null entries
+    var isFeatureSettingsArrayAllNull = true
+    for (let i = 0; i < textLayersFeatureSettings.length; i++) {
+        if (textLayersFeatureSettings[i] != null) {
+            isFeatureSettingsArrayAllNull = false
+            break
+        }
+    }
+    if (isFeatureSettingsArrayAllNull) {
+        // Bc the array is all null then just set the default UI settings
+        updatedUISettings = getDefaultUISettings()
     } else {
-        updatedUISettings = defaultUISettings
+        updatedUISettings = modifyUISettings(textLayersFeatureSettings, getDefaultUISettings)
     }
 
     //Update UI Panel with only one update (to prevent flickering)
     for (var uiSetting in updatedUISettings) {
         if (uiSetting == 'verticalPosition') {
 
-        let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
-        verticalPositionPopupButton.setEnabled(true)
-            if (updatedUISettings[uiSetting] == 'default') {
-                // console.log('Setting UI: Vertical Position = Default Position')
-                verticalPositionPopupButton.selectItemWithTitle('Default Position')
-            } else if (updatedUISettings[uiSetting] == 'superscript') {
-                // console.log('Setting UI: Vertical Position = Superscript')
-                verticalPositionPopupButton.selectItemWithTitle('Superscript')
-            } else if (updatedUISettings[uiSetting] == 'subscript') {
-                // console.log('Setting UI: Vertical Position = Subscript')
-                verticalPositionPopupButton.selectItemWithTitle('Subscript')
-            } else if (updatedUISettings[uiSetting] == 'ordinals') {
-                // console.log('Setting UI: Vertical Position = Ordinals')
-                verticalPositionPopupButton.selectItemWithTitle('Ordinals')
-            } else if (updatedUISettings[uiSetting] == 'scientific inferiors') {
-                // console.log('Setting UI: Vertical Position = Scientific Notation')
-                verticalPositionPopupButton.selectItemWithTitle('Scientific Notation')
+            let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
+            verticalPositionPopupButton.setEnabled(true)
+
+            //Clear mixed state items before setting them
+            clearPopupButtonState()
+
+            if (updatedUISettings[uiSetting].length > 1) {
+                // TODO: figure out UI manipulation to support pulldown properly
+                verticalPositionPopupButton.selectItemWithTitle('Multiple')
+
+                updatedUISettings[uiSetting].forEach(verticalPositionSetting => {
+                    if (verticalPositionSetting == 'default') {
+                        verticalPositionPopupButton.itemWithTitle('Default Position').setState(NSControlStateValueMixed)
+                    } else if (verticalPositionSetting == 'superscript') {
+                        verticalPositionPopupButton.itemWithTitle('Superscript').setState(NSControlStateValueMixed)
+                    } else if (verticalPositionSetting == 'subscript') {
+                        verticalPositionPopupButton.itemWithTitle('Subscript').setState(NSControlStateValueMixed)
+                    } else if (verticalPositionSetting == 'ordinals') {
+                        verticalPositionPopupButton.itemWithTitle('Ordinals').setState(NSControlStateValueMixed)
+                    } else if (verticalPositionSetting == 'scientific inferiors') {
+                        verticalPositionPopupButton.itemWithTitle('Scientific Notation').setState(NSControlStateValueMixed)
+                    }
+                })
             } else {
-                // console.log('Error: Attempting update panel state - Out of scope of verticalPosition options')
+                if (updatedUISettings[uiSetting][0] == 'default') {
+                    // console.log('Setting UI: Vertical Position = Default Position')
+                    verticalPositionPopupButton.selectItemWithTitle('Default Position')
+                    verticalPositionPopupButton.itemWithTitle('Default Position').setState(NSControlStateValueOn)
+                } else if (updatedUISettings[uiSetting][0] == 'superscript') {
+                    // console.log('Setting UI: Vertical Position = Superscript')
+                    verticalPositionPopupButton.selectItemWithTitle('Superscript')
+                    verticalPositionPopupButton.itemWithTitle('Superscript').setState(NSControlStateValueOn)
+                } else if (updatedUISettings[uiSetting][0] == 'subscript') {
+                    // console.log('Setting UI: Vertical Position = Subscript')
+                    verticalPositionPopupButton.selectItemWithTitle('Subscript')
+                    verticalPositionPopupButton.itemWithTitle('Subscript').setState(NSControlStateValueOn)
+                } else if (updatedUISettings[uiSetting][0] == 'ordinals') {
+                    // console.log('Setting UI: Vertical Position = Ordinals')
+                    verticalPositionPopupButton.selectItemWithTitle('Ordinals')
+                    verticalPositionPopupButton.itemWithTitle('Ordinals').setState(NSControlStateValueOn)
+                } else if (updatedUISettings[uiSetting][0] == 'scientific inferiors') {
+                    // console.log('Setting UI: Vertical Position = Scientific Notation')
+                    verticalPositionPopupButton.selectItemWithTitle('Scientific Notation')
+                    verticalPositionPopupButton.itemWithTitle('Scientific Notation').setState(NSControlStateValueOn)
+                } else {
+                    logWarning('betterTypeTool: ERROR Attempting update panel state - Out of scope of verticalPosition options')
+                }
             }
 
         } else if (uiSetting == 'numberSpacing') {
@@ -641,16 +681,21 @@ function updateUI() {
             radioButtonProportional.setEnabled(true)
             radioButtonMonospacedOrTabular.setEnabled(true)
 
-            if (updatedUISettings[uiSetting] == 'proportional') {
-                // console.log('Setting UI: Number Spacing = Proportional')
-                radioButtonProportional.setState(NSOnState)
-                radioButtonMonospacedOrTabular.setState(NSOffState)
-            } else if (updatedUISettings[uiSetting] == 'monospaced') {
-                // console.log('Setting UI: Number Spacing == Monospaced/Tabular')
+            if (updatedUISettings[uiSetting].length > 1) {
                 radioButtonProportional.setState(NSOffState)
-                radioButtonMonospacedOrTabular.setState(NSOnState)
+                radioButtonMonospacedOrTabular.setState(NSOffState)
             } else {
-                // console.log('Error: Attempting update panel state - Out of scope of numberSpacing options')
+                if (updatedUISettings[uiSetting][0] == 'proportional') {
+                    // console.log('Setting UI: Number Spacing = Proportional')
+                    radioButtonProportional.setState(NSOnState)
+                    radioButtonMonospacedOrTabular.setState(NSOffState)
+                } else if (updatedUISettings[uiSetting][0] == 'monospaced') {
+                    // console.log('Setting UI: Number Spacing == Monospaced/Tabular')
+                    radioButtonProportional.setState(NSOffState)
+                    radioButtonMonospacedOrTabular.setState(NSOnState)
+                } else {
+                    // console.log('Error: Attempting update panel state - Out of scope of numberSpacing options')
+                }
             }
 
         } else if (uiSetting == 'numberCase') {
@@ -659,141 +704,185 @@ function updateUI() {
             radioButtonLiningFigures.setEnabled(true)
             radioButtonOldStyleFigures.setEnabled(true)
 
-            if (updatedUISettings[uiSetting] == 'lining') {
-                // console.log('Setting UI: Number Case = Lining figures')
-                radioButtonLiningFigures.setState(NSOnState)
-                radioButtonOldStyleFigures.setState(NSOffState)
-            } else if (updatedUISettings[uiSetting] == 'oldStyle') {
-                // console.log('Setting UI: Number Case = Old-style figures')
+            if (updatedUISettings[uiSetting].length > 1) {
                 radioButtonLiningFigures.setState(NSOffState)
-                radioButtonOldStyleFigures.setState(NSOnState)
+                radioButtonOldStyleFigures.setState(NSOffState)
             } else {
-                // console.log('Error: Attempting to update panel state - Out of scope of numberCase options')
+                if (updatedUISettings[uiSetting][0] == 'lining') {
+                    // console.log('Setting UI: Number Case = Lining figures')
+                    radioButtonLiningFigures.setState(NSOnState)
+                    radioButtonOldStyleFigures.setState(NSOffState)
+                } else if (updatedUISettings[uiSetting][0] == 'oldStyle') {
+                    // console.log('Setting UI: Number Case = Old-style figures')
+                    radioButtonLiningFigures.setState(NSOffState)
+                    radioButtonOldStyleFigures.setState(NSOnState)
+                } else {
+                    // console.log('Error: Attempting to update panel state - Out of scope of numberCase options')
+                }
             }
 
         } else if (uiSetting == 'smallCapsUpperCase') {
             let pushOnOffButtonUpperCase = threadDictionary[pushOnOffButtonUpperCaseID]
             pushOnOffButtonUpperCase.setEnabled(true)
 
-            if (updatedUISettings[uiSetting] == false) {
-                // console.log('Setting UI: Small Caps Upper Case = Off')
+            if (updatedUISettings[uiSetting].length > 1) {
                 pushOnOffButtonUpperCase.setState(NSOffState)
-            } else if (updatedUISettings[uiSetting] == true) {
-                // console.log('Setting UI: Small Caps Upper Case = On')
-                pushOnOffButtonUpperCase.setState(NSOnState)
+            } else {
+                if (updatedUISettings[uiSetting][0] == false) {
+                    // console.log('Setting UI: Small Caps Upper Case = Off')
+                    pushOnOffButtonUpperCase.setState(NSOffState)
+                } else if (updatedUISettings[uiSetting][0] == true) {
+                    // console.log('Setting UI: Small Caps Upper Case = On')
+                    pushOnOffButtonUpperCase.setState(NSOnState)
+                }
             }
 
         } else if (uiSetting == 'smallCapsLowerCase') {
             let pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID]
             pushOnOffButtonLowerCase.setEnabled(true)
 
-            if (updatedUISettings[uiSetting] == false) {
-                // console.log('Setting UI: Small Caps Lower Case = Off')
+            if (updatedUISettings[uiSetting].length > 1) {
                 pushOnOffButtonLowerCase.setState(NSOffState)
-            } else if (updatedUISettings[uiSetting] == true) {
-                // console.log('Setting UI: Small Caps Lower Case = On')
-                pushOnOffButtonLowerCase.setState(NSOnState)
+            } else {
+                if (updatedUISettings[uiSetting][0] == false) {
+                    // console.log('Setting UI: Small Caps Lower Case = Off')
+                    pushOnOffButtonLowerCase.setState(NSOffState)
+                } else if (updatedUISettings[uiSetting][0] == true) {
+                    // console.log('Setting UI: Small Caps Lower Case = On')
+                    pushOnOffButtonLowerCase.setState(NSOnState)
+                }
             }
 
+
         } else {
-            // console.log('Error: Unhandled uiSetting Property')
-            // console.log(updatedUISettings[uiSetting])
+            logWarning('Error: Unhandled uiSetting Property')
+            logWarning(updatedUISettings[uiSetting])
         }
     }
 }
 
-function modifyUISettings(fontFeatureSettings, uiSettings) {
-    fontFeatureSettings.forEach(function(featureSetting) {
-        const featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey]
-        const featureSelectorIdentifierKey = featureSetting[NSFontFeatureSelectorIdentifierKey]
+function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
 
-        if (featureTypeIdentifierKey == 10) {
-            // kVerticalPosition
-            if (featureSelectorIdentifierKey == 0) {
-                // kNormalPositionSelector
-                uiSettings.verticalPosition = 'default'
-            } else if (featureSelectorIdentifierKey == 1) {
-                // kSuperiorsSelector
-                uiSettings.verticalPosition = 'superscript'
-            } else if (featureSelectorIdentifierKey == 2) {
-                // kInferiorsSelector
-                uiSettings.verticalPosition = 'subscript'
-            } else if (featureSelectorIdentifierKey == 3) {
-                // kOrdinalsSelector
-                uiSettings.verticalPosition = 'ordinals'
-            } else if (featureSelectorIdentifierKey == 4) {
-                // kScientificInferiorsSelector
-                uiSettings.verticalPosition = 'scientific inferiors'
-            } else {
-                // console.log("Unknown Feature for Vertical Position")
+    let settingsCollection = {
+        "verticalPosition": [],
+        "numberSpacing": [],
+        "numberCase": [],
+        "smallCapsLowerCase": [],
+        "smallCapsUpperCase": []
+    }
+
+    for (var i = 0; i < textLayersFeatureSettings.length; i++) {
+        let currentLayerSettings = getDefaultUISettings()
+
+        textLayersFeatureSettings[i].forEach(function(featureSetting) {
+
+            const featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey]
+            const featureSelectorIdentifierKey = featureSetting[NSFontFeatureSelectorIdentifierKey]
+
+            if (featureTypeIdentifierKey == 10) {
+                // kVerticalPosition
+                if (featureSelectorIdentifierKey == 0) {
+                    // kNormalPositionSelector
+                    currentLayerSettings.verticalPosition = 'default'
+                } else if (featureSelectorIdentifierKey == 1) {
+                    // kSuperiorsSelector
+                    currentLayerSettings.verticalPosition = 'superscript'
+                } else if (featureSelectorIdentifierKey == 2) {
+                    // kInferiorsSelector
+                    currentLayerSettings.verticalPosition = 'subscript'
+                } else if (featureSelectorIdentifierKey == 3) {
+                    // kOrdinalsSelector
+                    currentLayerSettings.verticalPosition = 'ordinals'
+                } else if (featureSelectorIdentifierKey == 4) {
+                    // kScientificInferiorsSelector
+                    currentLayerSettings.verticalPosition = 'scientific inferiors'
+                } else {
+                    logWarning("betterTypeTool: Unknown Feature for Vertical Position")
+                }
             }
+
+            if (featureTypeIdentifierKey == 6) {
+                //kNumberSpacing
+                if (featureSelectorIdentifierKey == 0) {
+                    // kMonospacedNumbersSelector
+                    currentLayerSettings.numberSpacing = 'monospaced'
+                } else if (featureSelectorIdentifierKey == 1) {
+                    // kProportionalNumbersSelector
+                    currentLayerSettings.numberSpacing = 'proportional'
+                } else if (featureSelectorIdentifierKey == 2) {
+                    // kThirdWidthNumbersSelector
+                     logWarning("betterTypeTool: Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)")
+                } else if (featureSelectorIdentifierKey == 3) {
+                    // kQuarterWidthNumbersSelector
+                    logWarning("betterTypeTool: Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals")
+                } else {
+                    logWarning("betterTypeTool: Unknown feature for Number Spacing")
+                }
+            }
+
+            if (featureTypeIdentifierKey == 21) {
+                // kNumberCaseType
+                if (featureSelectorIdentifierKey == 0) {
+                    // kLowerCaseNumbersSelector
+                    currentLayerSettings.numberCase = 'oldStyle'
+                } else if (featureSelectorIdentifierKey == 1) {
+                    // kUpperCaseNumbersSelector
+                    currentLayerSettings.numberCase = 'lining'
+                } else {
+                    logWarning("betterTypeTool: Unknown feature for Number Case")
+                }
+            }
+
+            if (featureTypeIdentifierKey == 37) {
+                // kLowerCase
+                if (featureSelectorIdentifierKey == 0) {
+                    // kDefaultLowerCaseSelector (aka OFF)
+                    currentLayerSettings.smallCapsLowerCase = false
+                } else if (featureSelectorIdentifierKey == 1) {
+                    // kLowerCaseSmallCapsSelector
+                    currentLayerSettings.smallCapsLowerCase = true
+                } else if (featureSelectorIdentifierKey == 2) {
+                    // kLowerCasePetiteCapsSelector
+                    logWarning("Unsupported Lower Case Small Caps Feature - Lower Case Petite Caps")
+                }
+            }
+
+            if (featureTypeIdentifierKey == 38) {
+                // kUpperCase
+                if (featureSelectorIdentifierKey == 0) {
+                    // kDefaultUpperCaseSelector (aka OFF)
+                    currentLayerSettings.smallCapsUpperCase = false
+                } else if (featureSelectorIdentifierKey == 1) {
+                    // kUpperCaseSmallCapsSelector
+                    currentLayerSettings.smallCapsUpperCase = true
+                } else if (featureSelectorIdentifierKey == 2) {
+                    // kUpperCasePetiteCapsSelector
+                    logWarning("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps")
+                }
+            }
+        });
+
+        // Push current layer properties onto settingsCollection
+        for (var key in currentLayerSettings) {
+            settingsCollection[key].push(currentLayerSettings[key])
         }
 
-        if (featureTypeIdentifierKey == 6) {
-            //kNumberSpacing
-            if (featureSelectorIdentifierKey == 0) {
-                // kMonospacedNumbersSelector
-                uiSettings.numberSpacing = 'monospaced'
-            } else if (featureSelectorIdentifierKey == 1) {
-                // kProportionalNumbersSelector
-                uiSettings.numberSpacing = 'proportional'
-            } else if (featureSelectorIdentifierKey == 2) {
-                // kThirdWidthNumbersSelector
-                // console.log("Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)")
-            } else if (featureSelectorIdentifierKey == 3) {
-                // kQuarterWidthNumbersSelector
-                // console.log("Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals")
-            } else {
-                // console.log("Unknown feature for Number Spacing")
-            }
-        }
+    }
 
-        if (featureTypeIdentifierKey == 21) {
-            // kNumberCaseType
-            if (featureSelectorIdentifierKey == 0) {
-                // kLowerCaseNumbersSelector
-                uiSettings.numberCase = 'oldStyle'
-            } else if (featureSelectorIdentifierKey == 1) {
-                // kUpperCaseNumbersSelector
-                uiSettings.numberCase = 'lining'
-            } else {
-                // console.log("Unknown feature for Number Case")
-            }
-        }
+    //Deduplicate settingsCollection to only have unique entries
+    for (var property in settingsCollection) {
+        settingsCollection[property] = settingsCollection[property].filter(onlyUnique)
+    }
 
-        if (featureTypeIdentifierKey == 37) {
-            // kLowerCase
-            if (featureSelectorIdentifierKey == 0) {
-                // kDefaultLowerCaseSelector (aka OFF)
-                uiSettings.smallCapsLowerCase = false
-            } else if (featureSelectorIdentifierKey == 1) {
-                // kLowerCaseSmallCapsSelector
-                uiSettings.smallCapsLowerCase = true
-            } else if (featureSelectorIdentifierKey == 2) {
-                // kLowerCasePetiteCapsSelector
-                // console.log("Unsupported Lower Case Small Caps Feature - Lower Case Petite Caps")
-            }
-        }
+    function onlyUnique(value,index,self) {
+        return self.indexOf(value) === index
+    }
 
-        if (featureTypeIdentifierKey == 38) {
-            // kUpperCase
-            if (featureSelectorIdentifierKey == 0) {
-                // kDefaultUpperCaseSelector (aka OFF)
-                uiSettings.smallCapsUpperCase = false
-            } else if (featureSelectorIdentifierKey == 1) {
-                // kUpperCaseSmallCapsSelector
-                uiSettings.smallCapsUpperCase = true
-            } else if (featureSelectorIdentifierKey == 2) {
-                // kUpperCasePetiteCapsSelector
-                // console.log("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps")
-            }
-        }
-    })
-
-    return uiSettings
+    return settingsCollection
 }
 
 function disableUI(threadDictionary) {
+    //TODO: Maybe reset the state to the deault params when UI is disabled
     let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
     verticalPositionPopupButton.setEnabled(false)
 
@@ -823,4 +912,29 @@ function closePanel(panel, threadDictionary, threadIdentifier) {
 
         //Stop this script
         COScript.currentCOScript().setShouldKeepAround_(false)
+}
+
+    //Start with Default Settings
+function getDefaultUISettings() {
+    return {
+        'verticalPosition': 'default', // 'default', 'superscript', 'subscript', 'ordinals', 'scientific inferiors'
+        'numberSpacing': 'proportional', // 'proportional', 'monospaced'
+        'numberCase': 'lining', // 'lining', 'oldStyle'
+        'smallCapsLowerCase': false, // bool
+        'smallCapsUpperCase': false // bool
+    }
+}
+
+function clearPopupButtonState() {
+    let threadDictionary = NSThread.mainThread().threadDictionary()
+    let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
+    verticalPositionPopupButton.itemWithTitle('Default Position').setState(NSControlStateValueOff)
+    verticalPositionPopupButton.itemWithTitle('Superscript').setState(NSControlStateValueOff)
+    verticalPositionPopupButton.itemWithTitle('Subscript').setState(NSControlStateValueOff)
+    verticalPositionPopupButton.itemWithTitle('Ordinals').setState(NSControlStateValueOff)
+    verticalPositionPopupButton.itemWithTitle('Scientific Notation').setState(NSControlStateValueOff)
+}
+
+function logWarning(warning) {
+    //console.log(warning)
 }
