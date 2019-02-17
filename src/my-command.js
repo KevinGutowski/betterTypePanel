@@ -536,25 +536,22 @@ function createTextField({text, frame, alignment, fontSize = 13}) {
 
 function updateFontFeatureSettingsAttribute(settingsAttribute) {
     var document = sketch.getSelectedDocument();
-    var textLayer = document.selectedLayers.layers[0]
-    var font = textLayer.sketchObject.font()
-    var fontSize = font.pointSize()
-    var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
-    const descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute)
+    var selectedLayers = document.selectedLayers.layers
+    var textLayers = selectedLayers.filter(layer => layer.type == "Text")
 
-    const newFont = NSFont.fontWithDescriptor_size(descriptor,fontSize)
+    //TODO: Support During Edit State of Text
+    // if (textLayer.sketchObject.isEditingText() == 1)
 
-    if (textLayer.sketchObject.isEditingText() == 1) {
-        // In Edit Mode
-        console.log("In Edit Mode")
-        let textStorage = textLayer.sketchObject.editingDelegate().textStorage()
-        textStorage.beginEditing()
-        textStorage.setAttributes_range(settingsAttribute, NSMakeRange(0,5))
-        textStorage.endEditing()
-    } else {
+    textLayers.forEach(textLayer => {
+        let font = textLayer.sketchObject.font()
+        let fontSize = font.pointSize()
+        let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+        let descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute)
+        let newFont = NSFont.fontWithDescriptor_size(descriptor,fontSize)
         textLayer.sketchObject.setFont(newFont)
-    }
+    })
     document.sketchObject.inspectorController().reload()
+    updateUI()
 }
 
 function getFontForKey_Value(key, value) {
@@ -633,7 +630,7 @@ function updateUI() {
             verticalPositionPopupButton.setEnabled(true)
 
             //Clear mixed state items before setting them
-            clearPopupButtonState(verticalPositionPopupButton)
+            clearPopupButtonState()
 
             if (updatedUISettings[uiSetting].length > 1) {
                 // TODO: figure out UI manipulation to support pulldown properly
@@ -647,6 +644,8 @@ function updateUI() {
                     } else if (verticalPositionSetting == 'subscript') {
                         verticalPositionPopupButton.itemWithTitle('Subscript').setState(NSControlStateValueMixed)
                     } else if (verticalPositionSetting == 'ordinals') {
+                        verticalPositionPopupButton.itemWithTitle('Ordinals').setState(NSControlStateValueMixed)
+                    } else if (verticalPositionSetting == 'scientific inferiors') {
                         verticalPositionPopupButton.itemWithTitle('Scientific Notation').setState(NSControlStateValueMixed)
                     }
                 })
@@ -654,18 +653,23 @@ function updateUI() {
                 if (updatedUISettings[uiSetting][0] == 'default') {
                     // console.log('Setting UI: Vertical Position = Default Position')
                     verticalPositionPopupButton.selectItemWithTitle('Default Position')
+                    verticalPositionPopupButton.itemWithTitle('Default Position').setState(NSControlStateValueOn)
                 } else if (updatedUISettings[uiSetting][0] == 'superscript') {
                     // console.log('Setting UI: Vertical Position = Superscript')
                     verticalPositionPopupButton.selectItemWithTitle('Superscript')
+                    verticalPositionPopupButton.itemWithTitle('Superscript').setState(NSControlStateValueOn)
                 } else if (updatedUISettings[uiSetting][0] == 'subscript') {
                     // console.log('Setting UI: Vertical Position = Subscript')
                     verticalPositionPopupButton.selectItemWithTitle('Subscript')
+                    verticalPositionPopupButton.itemWithTitle('Subscript').setState(NSControlStateValueOn)
                 } else if (updatedUISettings[uiSetting][0] == 'ordinals') {
                     // console.log('Setting UI: Vertical Position = Ordinals')
                     verticalPositionPopupButton.selectItemWithTitle('Ordinals')
+                    verticalPositionPopupButton.itemWithTitle('Ordinals').setState(NSControlStateValueOn)
                 } else if (updatedUISettings[uiSetting][0] == 'scientific inferiors') {
                     // console.log('Setting UI: Vertical Position = Scientific Notation')
                     verticalPositionPopupButton.selectItemWithTitle('Scientific Notation')
+                    verticalPositionPopupButton.itemWithTitle('Scientific Notation').setState(NSControlStateValueOn)
                 } else {
                     logWarning('betterTypeTool: ERROR Attempting update panel state - Out of scope of verticalPosition options')
                 }
@@ -921,12 +925,14 @@ function getDefaultUISettings() {
     }
 }
 
-function clearPopupButtonState(popupButton) {
-    popupButton.itemWithTitle('Default Position').setState(NSControlStateValueOff)
-    popupButton.itemWithTitle('Superscript').setState(NSControlStateValueOff)
-    popupButton.itemWithTitle('Subscript').setState(NSControlStateValueOff)
-    popupButton.itemWithTitle('Ordinals').setState(NSControlStateValueOff)
-    popupButton.itemWithTitle('Scientific Notation').setState(NSControlStateValueOff)
+function clearPopupButtonState() {
+    let threadDictionary = NSThread.mainThread().threadDictionary()
+    let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
+    verticalPositionPopupButton.itemWithTitle('Default Position').setState(NSControlStateValueOff)
+    verticalPositionPopupButton.itemWithTitle('Superscript').setState(NSControlStateValueOff)
+    verticalPositionPopupButton.itemWithTitle('Subscript').setState(NSControlStateValueOff)
+    verticalPositionPopupButton.itemWithTitle('Ordinals').setState(NSControlStateValueOff)
+    verticalPositionPopupButton.itemWithTitle('Scientific Notation').setState(NSControlStateValueOff)
 }
 
 function logWarning(warning) {
