@@ -617,7 +617,13 @@ function updateUI() {
     }
     if (isFeatureSettingsArrayAllNull) {
         // Bc the array is all null then just set the default UI settings
-        updatedUISettings = getDefaultUISettings()
+        updatedUISettings = {
+            'verticalPosition': ['default'], // 'default', 'superscript', 'subscript', 'ordinals', 'scientific inferiors'
+            'numberSpacing': ['proportional'], // 'proportional', 'monospaced'
+            'numberCase': ['lining'], // 'lining', 'oldStyle'
+            'smallCapsLowerCase': [false], // bool
+            'smallCapsUpperCase': [false] // bool
+        }
     } else {
         updatedUISettings = modifyUISettings(textLayersFeatureSettings, getDefaultUISettings)
     }
