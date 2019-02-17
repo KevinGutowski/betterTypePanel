@@ -541,6 +541,7 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
 
     //TODO: Support During Edit State of Text
     // if (textLayer.sketchObject.isEditingText() == 1)
+    var didAttemptToApplyToSubstring = false
 
     textLayers.forEach(textLayer => {
         let font = textLayer.sketchObject.font()
@@ -549,7 +550,15 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
         let descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute)
         let newFont = NSFont.fontWithDescriptor_size(descriptor,fontSize)
         textLayer.sketchObject.setFont(newFont)
+
+        if (textLayer.sketchObject.isEditingText() == 1) {
+            let textView = textLayer.sketchObject.editingDelegate().textView()
+            textView.setFont(newFont)
+            textView.didChangeText()
+            didAttemptToApplyToSubstring = true
+        }
     })
+    if (didAttemptToApplyToSubstring) { sketch.UI.message("👋 Substring styling is currently unsupported. Style applied to the whole text object instead.") }
     document.sketchObject.inspectorController().reload()
     updateUI()
 }
@@ -561,7 +570,6 @@ function getFontForKey_Value(key, value) {
     const descriptor = defaultButtonFont.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute)
     const newFont = NSFont.fontWithDescriptor_size(descriptor,13)
     return newFont
-
 }
 
 function getSettingsAttributeForKey_Value(key, value) {
@@ -639,7 +647,6 @@ function updateUI() {
             clearPopupButtonState()
 
             if (updatedUISettings[uiSetting].length > 1) {
-                // TODO: figure out UI manipulation to support pulldown properly
                 verticalPositionPopupButton.selectItemWithTitle('Multiple')
 
                 updatedUISettings[uiSetting].forEach(verticalPositionSetting => {
@@ -779,6 +786,8 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
 
     for (var i = 0; i < textLayersFeatureSettings.length; i++) {
         let currentLayerSettings = getDefaultUISettings()
+
+        // Guard against text layers without any font features set
         if (textLayersFeatureSettings[i] != null) {
             textLayersFeatureSettings[i].forEach(function(featureSetting) {
 

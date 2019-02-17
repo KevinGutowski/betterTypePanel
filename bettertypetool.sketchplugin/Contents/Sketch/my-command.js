@@ -547,6 +547,7 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
   }); //TODO: Support During Edit State of Text
   // if (textLayer.sketchObject.isEditingText() == 1)
 
+  var didAttemptToApplyToSubstring = false;
   textLayers.forEach(function (textLayer) {
     var font = textLayer.sketchObject.font();
     var fontSize = font.pointSize();
@@ -554,7 +555,19 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
     var descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute);
     var newFont = NSFont.fontWithDescriptor_size(descriptor, fontSize);
     textLayer.sketchObject.setFont(newFont);
+
+    if (textLayer.sketchObject.isEditingText() == 1) {
+      var textView = textLayer.sketchObject.editingDelegate().textView();
+      textView.setFont(newFont);
+      textView.didChangeText();
+      didAttemptToApplyToSubstring = true;
+    }
   });
+
+  if (didAttemptToApplyToSubstring) {
+    sketch__WEBPACK_IMPORTED_MODULE_0___default.a.UI.message("👋 Substring styling is currently unsupported. Style applied to the whole text object instead.");
+  }
+
   document.sketchObject.inspectorController().reload();
   updateUI();
 }
@@ -648,7 +661,6 @@ function updateUI() {
         clearPopupButtonState();
 
         if (updatedUISettings[uiSetting].length > 1) {
-          // TODO: figure out UI manipulation to support pulldown properly
           verticalPositionPopupButton.selectItemWithTitle('Multiple');
           updatedUISettings[uiSetting].forEach(function (verticalPositionSetting) {
             if (verticalPositionSetting == 'default') {
@@ -778,7 +790,7 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
   };
 
   var _loop = function _loop() {
-    var currentLayerSettings = getDefaultUISettings();
+    var currentLayerSettings = getDefaultUISettings(); // Guard against text layers without any font features set
 
     if (textLayersFeatureSettings[i] != null) {
       textLayersFeatureSettings[i].forEach(function (featureSetting) {
