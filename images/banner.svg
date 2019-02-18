@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="805px" height="798px" viewBox="0 0 805 798" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <!-- Generator: Sketch Beta 53.1 (72631) - https://sketchapp.com -->
+    <title>Artboard Copy 3</title>
+    <desc>Created with Sketch Beta.</desc>
+    <defs>
+        <circle id="path-1" cx="269" cy="477" r="20"></circle>
+        <filter x="-60.0%" y="-60.0%" width="220.0%" height="220.0%" filterUnits="objectBoundingBox" id="filter-2">
+            <feOffset dx="0" dy="0" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="8" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 1   0 0 0 0 0.810885603   0 0 0 0 0.419397866  0 0 0 0.3 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <rect id="path-3" x="0" y="0" width="330" height="59"></rect>
+        <filter x="-4.8%" y="-23.7%" width="109.7%" height="154.2%" filterUnits="objectBoundingBox" id="filter-4">
+            <feOffset dx="0" dy="2" in="SourceAlpha" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="5" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.2 0" type="matrix" in="shadowBlurOuter1"></feColorMatrix>
+        </filter>
+        <polygon id="path-5" points="8.82988982 1.21140221 20.0720715 0.000842816878 31.2501101 1.21140221 40.0404162 12.9063102 20.0403226 36.1314958 0.0384619928 12.9063102"></polygon>
+        <linearGradient x1="32.1514111%" y1="30.6154677%" x2="87.0558193%" y2="10.6488517%" id="linearGradient-7">
+            <stop stop-color="#FDC003" offset="0%"></stop>
+            <stop stop-color="#FDD12B" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="31.9611527%" y1="30.6154677%" x2="87.4508186%" y2="10.6488517%" id="linearGradient-8">
+            <stop stop-color="#FDC003" offset="0%"></stop>
+            <stop stop-color="#FDD12B" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-9">
+            <stop stop-color="#6CB3FA" offset="0%"></stop>
+            <stop stop-color="#067DFF" offset="100%"></stop>
+        </linearGradient>
+        <linearGradient x1="50%" y1="0%" x2="50%" y2="100%" id="linearGradient-10">
+            <stop stop-color="#50A4F9" offset="0%"></stop>
+            <stop stop-color="#005CFF" offset="100%"></stop>
+        </linearGradient>
+        <rect id="path-11" x="0" y="0" width="383" height="92" rx="12"></rect>
+        <filter x="-22.5%" y="-93.5%" width="144.9%" height="287.0%" filterUnits="objectBoundingBox" id="filter-12">
+            <feMorphology radius="10" operator="erode" in="SourceAlpha" result="shadowSpreadOuter1"></feMorphology>
+            <feOffset dx="0" dy="0" in="shadowSpreadOuter1" result="shadowOffsetOuter1"></feOffset>
+            <feGaussianBlur stdDeviation="32" in="shadowOffsetOuter1" result="shadowBlurOuter1"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter1" in2="SourceAlpha" operator="out" result="shadowBlurOuter1"></feComposite>
+            <feColorMatrix values="0 0 0 0 0.359108232   0 0 0 0 0.737711963   0 0 0 0 1  0 0 0 0.6 0" type="matrix" in="shadowBlurOuter1" result="shadowMatrixOuter1"></feColorMatrix>
+            <feOffset dx="0" dy="2" in="SourceAlpha" result="shadowOffsetOuter2"></feOffset>
+            <feGaussianBlur stdDeviation="2" in="shadowOffsetOuter2" result="shadowBlurOuter2"></feGaussianBlur>
+            <feComposite in="shadowBlurOuter2" in2="SourceAlpha" operator="out" result="shadowBlurOuter2"></feComposite>
+            <feColorMatrix values="0 0 0 0 0   0 0 0 0 0   0 0 0 0 0  0 0 0 0.5 0" type="matrix" in="shadowBlurOuter2" result="shadowMatrixOuter2"></feColorMatrix>
+            <feMerge>
+                <feMergeNode in="shadowMatrixOuter1"></feMergeNode>
+                <feMergeNode in="shadowMatrixOuter2"></feMergeNode>
+            </feMerge>
+        </filter>
+    </defs>
+    <g id="Artboard-Copy-3" stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <rect id="Rectangle" stroke="#E4E3E3" fill="#F5F5F5" x="0.5" y="0.5" width="804" height="797" rx="4"></rect>
+        <rect id="Rectangle" fill-opacity="0.12" fill="#4A4A4A" x="32" y="479" width="740" height="3"></rect>
+        <rect id="Rectangle" fill="#F5F5F5" x="233" y="454" width="340" height="48"></rect>
+        <g id="Oval" fill="black" fill-opacity="1">
+            <use filter="url(#filter-2)" xlink:href="#path-1"></use>
+        </g>
+        <g id="Group-2" transform="translate(64.000000, 539.000000)">
+            <g id="Group-4" transform="translate(0.000000, 32.000000)" fill="#000000" fill-opacity="0.850232111" font-family="AGaramondPro-Semibold, Adobe Garamond Pro" font-weight="500">
+                <text id="H2O" transform="translate(52.000000, 27.000000) rotate(-360.000000) translate(-52.000000, -27.000000) " font-size="52">
+                    <tspan x="0" y="39">H2O</tspan>
+                </text>
+                <text id="1st" transform="translate(157.000000, 31.000000) rotate(-360.000000) translate(-157.000000, -31.000000) " font-size="62">
+                    <tspan x="128" y="45">1st</tspan>
+                </text>
+                <text id="x2" transform="translate(238.500000, 31.000000) rotate(-360.000000) translate(-238.500000, -31.000000) " font-size="62">
+                    <tspan x="210" y="45">x2</tspan>
+                </text>
+            </g>
+            <text id="NUMBER-POSITION" font-family="AvenirNext-Bold, Avenir Next" font-size="18" font-weight="bold" letter-spacing="0.5" fill="#4F4F52">
+                <tspan x="0" y="18">NUMBER POSITION</tspan>
+            </text>
+        </g>
+        <g id="Group-7" transform="translate(479.000000, 539.000000)">
+            <g id="Group-3" transform="translate(139.500000, 59.000000) rotate(-360.000000) translate(-139.500000, -59.000000) translate(1.000000, 33.000000)" fill="#000000" fill-opacity="0.850232111" font-family="AGaramondPro-Semibold, Adobe Garamond Pro" font-size="52" font-weight="500" letter-spacing="1.6774193">
+                <text id="12345">
+                    <tspan x="158" y="38">12345</tspan>
+                </text>
+                <text id="12345-copy">
+                    <tspan x="0.552903476" y="38">12345</tspan>
+                </text>
+            </g>
+            <text id="NUMBER-CASE" font-family="AvenirNext-Bold, Avenir Next" font-size="18" font-weight="bold" letter-spacing="0.5" fill="#4F4F52">
+                <tspan x="0" y="18">NUMBER CASE</tspan>
+            </text>
+        </g>
+        <g id="Group-9" transform="translate(479.000000, 672.000000)">
+            <text id="Small-Caps" font-family="AvenirNext-Bold, Avenir Next" font-size="18" font-weight="bold" letter-spacing="0.5" fill="#4F4F52">
+                <tspan x="0" y="18">SMALL CAPS</tspan>
+            </text>
+            <text id="Lower" transform="translate(63.500000, 55.000000) rotate(-360.000000) translate(-63.500000, -55.000000) " font-family="AGaramondPro-Semibold, Adobe Garamond Pro" font-size="42" font-weight="500" letter-spacing="1.35483873" fill="#000000" fill-opacity="0.850232111">
+                <tspan x="0" y="64">Lower</tspan>
+            </text>
+            <text id="Upper" transform="translate(228.000000, 55.000000) rotate(-360.000000) translate(-228.000000, -55.000000) " font-family="AGaramondPro-Semibold, Adobe Garamond Pro" font-size="42" font-weight="500" letter-spacing="1.35483873" fill="#000000" fill-opacity="0.850232111">
+                <tspan x="175" y="64">Upper</tspan>
+            </text>
+            <text id="&amp;" font-family="AGaramondPro-Semibold, Adobe Garamond Pro" font-size="42" font-weight="500" letter-spacing="1.354839" fill="#000000" fill-opacity="0.850232111">
+                <tspan x="132" y="63">&amp;</tspan>
+            </text>
+        </g>
+        <g id="Beta-Tag" transform="translate(63.535764, 46.509762) rotate(-28.000000) translate(-63.535764, -46.509762) translate(-101.464236, 17.009762)">
+            <g id="Group-2">
+                <g id="Rectangle">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-4)" xlink:href="#path-3"></use>
+                    <use fill="#FF9500" fill-rule="evenodd" xlink:href="#path-3"></use>
+                </g>
+                <text id="BETA" font-family="AvenirNext-DemiBold, Avenir Next" font-size="42" font-weight="500" line-spacing="56" fill="#FFFFFF">
+                    <tspan x="128" y="43">BETA</tspan>
+                </text>
+            </g>
+        </g>
+        <g id="Group-6" transform="translate(64.000000, 672.000000)">
+            <text id="NUMBER-SPACING" font-family="AvenirNext-Bold, Avenir Next" font-size="18" font-weight="bold" letter-spacing="0.5" fill="#4F4F52">
+                <tspan x="0" y="18">NUMBER SPACING</tspan>
+            </text>
+            <g id="Group-5" transform="translate(1.000000, 33.000000)" fill="#000000" fill-opacity="0.850232111" font-family="AGaramondPro-Semibold, Adobe Garamond Pro" font-size="52" font-weight="500" letter-spacing="1.6774193">
+                <text id="12345-copy-2">
+                    <tspan x="0.552903476" y="38">12345</tspan>
+                </text>
+                <text id="12345-copy-3">
+                    <tspan x="158" y="38">12345</tspan>
+                </text>
+            </g>
+        </g>
+        <text id="BetterTypePanel" font-family="GalaxieCopernicus-Extrabold, Galaxie Copernicus" font-size="60" font-weight="600" fill="#000000" fill-opacity="0.850232111">
+            <tspan x="126.1" y="166">BetterTypePanel</tspan>
+        </text>
+        <text id="Quick-access-to-comm" font-family="AvenirNext-Medium, Avenir Next" font-size="32" font-weight="400" line-spacing="48" fill="#4F4F52">
+            <tspan x="219.672" y="232">Quick access to common </tspan>
+            <tspan x="262.952" y="280">OpenType features</tspan>
+        </text>
+        <g id="Group-10" transform="translate(211.000000, 330.000000)">
+            <g id="Group-8" transform="translate(38.000000, 124.000000)">
+                <text id="Works-with-Sketch-51" font-family="AvenirNext-Medium, Avenir Next" font-size="24" font-weight="400" line-spacing="48" fill="#4F4F52">
+                    <tspan x="48" y="24">Works with </tspan>
+                    <tspan x="176.016" y="24" font-family="AvenirNext-Bold, Avenir Next" font-weight="bold">Sketch 51+</tspan>
+                </text>
+                <g id="Sketch-Gem" transform="translate(0.000000, 5.000000)">
+                    <g id="Icon-512" transform="translate(-0.040323, 0.000000)">
+                        <mask id="mask-6" fill="white">
+                            <use xlink:href="#path-5"></use>
+                        </mask>
+                        <use id="Mask" fill="#FEEEB7" xlink:href="#path-5"></use>
+                        <polygon id="Bottom-right" fill="#EA6C00" mask="url(#mask-6)" transform="translate(30.040353, 24.515265) scale(1, -1) translate(-30.040353, -24.515265) " points="31.8964361 36.1274842 40.0403841 36.1274842 20.0403226 12.9030461"></polygon>
+                        <polygon id="Bottom-left" fill="#EA6C00" mask="url(#mask-6)" transform="translate(10.040323, 24.518204) scale(-1, -1) translate(-10.040323, -24.518204) " points="11.8963746 36.1331817 20.0403226 36.1331817 0.0403225806 12.9032258"></polygon>
+                        <polygon id="Bottom-center" fill="#FDAD00" mask="url(#mask-6)" transform="translate(20.039190, 24.517420) scale(1, -1) translate(-20.039190, -24.517420) " points="8.18435177 36.1312866 31.8940292 36.1253037 20.040933 12.9035531"></polygon>
+                        <polygon id="Top-rigth" fill="url(#linearGradient-7)" mask="url(#mask-6)" points="31.2496325 1.20982076 31.8972754 12.9026893 20.0725334 0.00155541205"></polygon>
+                        <polygon id="Right" fill="#FDAD00" mask="url(#mask-6)" points="31.2496325 1.20982076 31.8972754 12.9026893 40.0400863 12.9026893"></polygon>
+                        <polygon id="Left" fill="#FDAD00" mask="url(#mask-6)" transform="translate(4.435579, 7.056112) scale(-1, 1) translate(-4.435579, -7.056112) " points="0.0403816469 1.20967742 0.688024559 12.9025459 8.83077644 12.9025459"></polygon>
+                        <polygon id="Top-let" fill="url(#linearGradient-8)" mask="url(#mask-6)" transform="translate(14.128606, 6.451302) scale(-1, 1) translate(-14.128606, -6.451302) " points="19.4240848 1.20826535 20.0717277 12.9011339 8.18548387 0.00146992138"></polygon>
+                        <polygon id="Top-center" fill="#FEEEB7" mask="url(#mask-6)" points="8.1858235 12.9026893 31.8955009 12.9026893 20.0716438 0.00155541205"></polygon>
+                    </g>
+                </g>
+            </g>
+            <g id="Group">
+                <g id="Rectangle">
+                    <use fill="black" fill-opacity="1" filter="url(#filter-12)" xlink:href="#path-11"></use>
+                    <rect stroke="url(#linearGradient-10)" stroke-width="1" stroke-linejoin="square" fill="url(#linearGradient-9)" fill-rule="evenodd" x="0.5" y="0.5" width="382" height="91" rx="12"></rect>
+                </g>
+                <text id="Download-Plugin" font-family="AvenirNext-Bold, Avenir Next" font-size="32" font-weight="bold" fill="#FFFFFF">
+                    <tspan x="81" y="56">Download Plugin</tspan>
+                </text>
+                <g id="download" transform="translate(38.000000, 30.000000)" fill="#03448C" fill-rule="nonzero">
+                    <path d="M13.5,22.6666667 L22.19265,14.0813333 C23.4684,12.8213333 22.56525,10.6666667 20.76165,10.6666667 L16.2,10.6666667 L16.2,2.66666667 C16.2,1.19466667 14.99175,0 13.5,0 C12.00825,0 10.8,1.19466667 10.8,2.66666667 L10.8,10.6666667 L6.23835,10.6666667 C4.43475,10.6666667 3.53025,12.8213333 4.806,14.0813333 L13.5,22.6666667 Z M24.3,26.6666667 L2.7,26.6666667 C1.215,26.6666667 0,27.8666667 0,29.3333333 C0,30.8 1.215,32 2.7,32 L24.3,32 C25.785,32 27,30.8 27,29.3333333 C27,27.8666667 25.785,26.6666667 24.3,26.6666667 Z" id="Shape"></path>
+                </g>
+            </g>
+        </g>
+    </g>
+</svg>

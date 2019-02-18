@@ -246,7 +246,7 @@ function setupPanel(threadDictionary, identifier) {
 
       updateFontFeatureSettingsAttribute(_settingsAttribute2);
     } else if (sender.title() == 'Scientific Notation') {
-      var _settingsAttribute3 = getSettingsAttributeForKey_Value(kVerticalPositionType, kOrdinalsSelector);
+      var _settingsAttribute3 = getSettingsAttributeForKey_Value(kVerticalPositionType, kScientificInferiorsSelector);
 
       updateFontFeatureSettingsAttribute(_settingsAttribute3);
     } else {

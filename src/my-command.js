@@ -177,7 +177,7 @@ function setupPanel(threadDictionary, identifier) {
             let settingsAttribute = getSettingsAttributeForKey_Value(kVerticalPositionType, kOrdinalsSelector)
             updateFontFeatureSettingsAttribute(settingsAttribute)
         } else if (sender.title() == 'Scientific Notation') {
-            let settingsAttribute = getSettingsAttributeForKey_Value(kVerticalPositionType, kOrdinalsSelector)
+            let settingsAttribute = getSettingsAttributeForKey_Value(kVerticalPositionType, kScientificInferiorsSelector)
             updateFontFeatureSettingsAttribute(settingsAttribute)
         } else {
             let settingsAttribute = getSettingsAttributeForKey_Value(kVerticalPositionType, kNormalPositionSelector)
