@@ -187,9 +187,8 @@ function setupPanel(threadDictionary, identifier) {
   var panelHeight = 210;
   var panel = NSPanel.alloc().init();
   panel.setFrame_display(NSMakeRect(0, 0, panelWidth, panelHeight), true);
-  panel.setStyleMask(NSTexturedBackgroundWindowMask | NSTitledWindowMask | NSClosableWindowMask); // panel.setBackgroundColor(NSColor.whiteColor());
-
-  panel.title = "betterTypePanel";
+  panel.setStyleMask(NSTexturedBackgroundWindowMask | NSTitledWindowMask | NSClosableWindowMask);
+  panel.title = "BetterTypePanel";
   panel.center();
   panel.makeKeyAndOrderFront(null);
   panel.setLevel(NSFloatingWindowLevel);
@@ -697,7 +696,7 @@ function updateUI() {
             verticalPositionPopupButton.selectItemWithTitle('Scientific Notation');
             verticalPositionPopupButton.itemWithTitle('Scientific Notation').setState(NSControlStateValueOn);
           } else {
-            logWarning('betterTypeTool: ERROR Attempting update panel state - Out of scope of verticalPosition options');
+            logWarning('BetterTypeTool: ERROR Attempting update panel state - Out of scope of verticalPosition options');
           }
         }
       })();
@@ -815,7 +814,7 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
             // kScientificInferiorsSelector
             currentLayerSettings.verticalPosition = 'scientific inferiors';
           } else {
-            logWarning("betterTypeTool: Unknown Feature for Vertical Position");
+            logWarning("BetterTypeTool: Unknown Feature for Vertical Position");
           }
         }
 
@@ -829,12 +828,12 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
             currentLayerSettings.numberSpacing = 'proportional';
           } else if (featureSelectorIdentifierKey == 2) {
             // kThirdWidthNumbersSelector
-            logWarning("betterTypeTool: Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)");
+            logWarning("BetterTypeTool: Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)");
           } else if (featureSelectorIdentifierKey == 3) {
             // kQuarterWidthNumbersSelector
-            logWarning("betterTypeTool: Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals");
+            logWarning("BetterTypeTool: Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals");
           } else {
-            logWarning("betterTypeTool: Unknown feature for Number Spacing");
+            logWarning("BetterTypeTool: Unknown feature for Number Spacing");
           }
         }
 
@@ -847,7 +846,7 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
             // kUpperCaseNumbersSelector
             currentLayerSettings.numberCase = 'lining';
           } else {
-            logWarning("betterTypeTool: Unknown feature for Number Case");
+            logWarning("BetterTypeTool: Unknown feature for Number Case");
           }
         }
 
