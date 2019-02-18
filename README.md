@@ -1,6 +1,11 @@
-<a href="https://github.com/KevinGutowski/betterTypePanel/releases/download/v0.1.1-5/bettertypetool.sketchplugin.zip">
+<a href="https://github.com/KevinGutowski/betterTypePanel/releases/download/v0.1.1-6/bettertypetool.sketchplugin.zip">
   <img src="images/banner.png" alt="BetterTypeTool - A Sketchplugin to make it easy to apply common OpenType Features"/>
 </a>
+
+### NOTE: Manual Updates Only (For Now)
+Currently investigating an issue where updates aren't getting pushed out to existing users. Please manually download from the releases tab to get the lastest version. Check back periodically for a new version that will have updates working properly. I will try and figure out what is going wrong soon so that updates can be more seamless! Sorry for the inconvience!
+
+---
 
 BetterTypePanel is a Sketch pluging that lets you easily interact with some common OpenType features. I wanted something to make it easier to apply small caps in Sketch (rather than having to go under `Show Fonts -> Typography -> Find Option` in the giant typography pane). It's still early stages for this little plugin so there are likely bugs to be had. Feel free to make an issue and I'll try to get to it. 
 
