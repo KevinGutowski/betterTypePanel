@@ -25,6 +25,7 @@ BetterTypePanel is a Sketch pluging that lets you easily interact with some comm
 
 ## Inital Release Features
 - [X] When setting up the UI, set the state of the buttons properly the first time (i.e. check if there is a text object selected or not and then set the state rather than setting the default state of the UI then running `updateUI()`)
+- [X] Dark mode support
 - [X] Properly style small caps buttons
 - [ ] Basic Support for applying properties to multiple selected Text Layers
 - [ ] Better communicate when fonts have unspported properties
