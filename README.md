@@ -1,25 +1,43 @@
-# BetterTypePanel (Beta)
-
 <a href="https://github.com/KevinGutowski/betterTypePanel/releases/download/v0.1.1-4/bettertypetool.sketchplugin.zip">
   <img src="images/banner.png" alt="BetterTypeTool - A Sketchplugin to make it easy to apply common OpenType Features"/>
 </a>
 
-This plugin lets you easily interact with some common OpenType features. I wanted something to make it easier to apply small caps in sketch (rather than having to go under Show Fonts -> Typography -> Find Option in Giant Typography Pane). It's still early stages for this little plugin so there are likely bugs to be had. Feel free to make an issue and I'll try to get to it. 
+BetterTypePanel is a Sketch pluging that lets you easily interact with some common OpenType features. I wanted something to make it easier to apply small caps in Sketch (rather than having to go under `Show Fonts -> Typography -> Find Option` in the giant typography pane). It's still early stages for this little plugin so there are likely bugs to be had. Feel free to make an issue and I'll try to get to it. 
 
 ![Showing How the plugin works](https://media.giphy.com/media/1qWljmoJUq12MOny5L/giphy.gif)
 
-## TODOS
+## Supported OpenType Features
+- Number Position
+	- Default Position
+	- Superscript
+	- Subscript
+	- Ordinals
+	- Scientific Notation
+- Number Spacing
+	- Proportional
+	- Monospaced/Tabular
+- Number Case
+	- Lining Figures
+	- Old-style Figures
+- Small Caps
+	- Lower Case
+	- Upper Case
+
+## Inital Release Features
 - [X] When setting up the UI, set the state of the buttons properly the first time (i.e. check if there is a text object selected or not and then set the state rather than setting the default state of the UI then running `updateUI()`)
 - [X] Properly style small caps buttons
 - [ ] Basic Support for applying properties to multiple selected Text Layers
-- [ ] Support Fractional Forms
+- [ ] Better communicate when fonts have unspported properties
+- [ ] Basic substring support
 
 ## Later Goals
+- [ ] Support Fractional Forms
 - [ ] Better Support Multiple layer selection
   - [ ] Resolve applying small caps to layers with different fonts
 - [ ] Ability to select text and apply transformation to just the selected text range
 - [ ] More OpenType Features! (Ligatures, Stylistic Sets, etc)
 - [ ] Text Style support (I hope Sketch will consider tweaking things on their end rather me hacking it together)
+- [ ] Better substring support
 
 ## Building The Plugin
 
