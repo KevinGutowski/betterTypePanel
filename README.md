@@ -1,4 +1,4 @@
-<a href="https://github.com/KevinGutowski/betterTypePanel/releases/download/v0.1.1-6/bettertypetool.sketchplugin.zip">
+<a href="https://github.com/KevinGutowski/betterTypePanel/releases/tag/v0.2.0">
   <img src="images/banner.png" alt="BetterTypeTool - A Sketchplugin to make it easy to apply common OpenType Features"/>
 </a>
 
