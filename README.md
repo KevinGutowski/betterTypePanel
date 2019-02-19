@@ -2,9 +2,6 @@
   <img src="images/banner.png" alt="BetterTypeTool - A Sketchplugin to make it easy to apply common OpenType Features"/>
 </a>
 
-### NOTE: Manual Updates Only (For Now)
-Currently investigating an issue where updates aren't getting pushed out to existing users. Please manually download from the releases tab to get the lastest version. Check back periodically for a new version that will have updates working properly. I will try and figure out what is going wrong soon so that updates can be more seamless! Sorry for the inconvience!
-
 ![Showing How the plugin works](https://media.giphy.com/media/1qWljmoJUq12MOny5L/giphy.gif)
 
 ## Supported OpenType Features
