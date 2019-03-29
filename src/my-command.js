@@ -1,4 +1,6 @@
 import sketch from 'sketch'
+import UI from './ui'
+
 // Documentation:
 // https://developer.sketchapp.com/reference/api/
 // https://developer.apple.com/fonts/TrueType-Reference-Manual/RM09/AppendixF.html
@@ -93,20 +95,7 @@ function runPanel() {
 }
 
 function setupPanel(threadDictionary, identifier) {
-    var panelWidth = 312
-    var panelHeight = 210
-    let panel = NSPanel.alloc().init()
-    panel.setFrame_display(NSMakeRect(0, 0, panelWidth, panelHeight), true)
-    panel.setStyleMask(NSTexturedBackgroundWindowMask | NSTitledWindowMask | NSClosableWindowMask)
-    panel.title = "BetterTypePanel"
-
-    panel.center()
-    panel.makeKeyAndOrderFront(null)
-    panel.setLevel(NSFloatingWindowLevel)
-
-    panel.standardWindowButton(NSWindowMiniaturizeButton).setHidden(true)
-    panel.standardWindowButton(NSWindowZoomButton).setHidden(true)
-
+    const panel = UI.createPanel()
 
     const column1width = 109
     const column2width = 171
