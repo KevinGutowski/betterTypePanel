@@ -16,22 +16,7 @@ let radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle"
 
 export default function() {
     runPanel()
-
     setupFramework()
-    framework("CoreText");
-    // const document = sketch.getSelectedDocument();
-    // const textLayer = document.selectedLayers.layers[0]
-    // const font = textLayer.sketchObject.font()
-    // const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), nil);
-    // const features = CTFontCopyFeatures(coreTextFont)
-    // const settings = CTFontCopyFeatureSettings(coreTextFont)
-
-    // var main = HSMain.alloc().init()
-    // var featuresArray = main.bridgeArray(features)
-    // var settingsArray = main.bridgeArray(settings)
-
-    //determineProps(featuresArray);
-
     updateUI()
 }
 
@@ -72,10 +57,6 @@ function setupFramework() {
             return false;
         }
     })();
-}
-
-function determineProps(featuresArray) {
-
 }
 
 function runPanel() {
@@ -588,13 +569,13 @@ function updateUI() {
     let threadDictionary = NSThread.mainThread().threadDictionary()
 
     if (selectedLayers == null) {
-        disableUI(threadDictionary)
+        disableUI(threadDictionary, ['all'])
         return
     }
 
     var textLayers = selectedLayers.filter(layer => layer.type == "Text")
     if (textLayers.length == 0) {
-        disableUI(threadDictionary)
+        disableUI(threadDictionary, ['all'])
         return
     }
 
@@ -771,6 +752,8 @@ function updateUI() {
             logWarning(updatedUISettings[uiSetting])
         }
     }
+
+    checkFontProps(textLayers)
 }
 
 function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
@@ -896,26 +879,38 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
     return settingsCollection
 }
 
-function disableUI(threadDictionary) {
+function disableUI(threadDictionary, optionsToDisableArray) {
+    // optionsToDisableArray is an array that can include "all", "verticalPosition", "numberSpacing", "numberCase", "smallCapsUppercase", "smallCapsLowerCase"
     //TODO: Maybe reset the state to the deault params when UI is disabled
-    let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
-    verticalPositionPopupButton.setEnabled(false)
+    console.log(optionsToDisableArray)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('verticalPosition')) {
+        let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
+        verticalPositionPopupButton.setEnabled(false)
+    }
 
-    let radioButtonProportional = threadDictionary[radioButtonProportionalID]
-    let radioButtonMonospacedOrTabular = threadDictionary[radioButtonMonospacedOrTabularID]
-    radioButtonProportional.setEnabled(false)
-    radioButtonMonospacedOrTabular.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('numberSpacing')) {
+        let radioButtonProportional = threadDictionary[radioButtonProportionalID]
+        let radioButtonMonospacedOrTabular = threadDictionary[radioButtonMonospacedOrTabularID]
+        radioButtonProportional.setEnabled(false)
+        radioButtonMonospacedOrTabular.setEnabled(false)
+    }
 
-    let radioButtonLiningFigures = threadDictionary[radioButtonLiningFiguresID]
-    let radioButtonOldStyleFigures = threadDictionary[radioButtonOldStyleFiguresID]
-    radioButtonLiningFigures.setEnabled(false)
-    radioButtonOldStyleFigures.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('numberCase')) {
+        let radioButtonLiningFigures = threadDictionary[radioButtonLiningFiguresID]
+        let radioButtonOldStyleFigures = threadDictionary[radioButtonOldStyleFiguresID]
+        radioButtonLiningFigures.setEnabled(false)
+        radioButtonOldStyleFigures.setEnabled(false)
+    }
 
-    let pushOnOffButtonUpperCase = threadDictionary[pushOnOffButtonUpperCaseID]
-    pushOnOffButtonUpperCase.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('smallCapsUpperCase')) {
+        let pushOnOffButtonUpperCase = threadDictionary[pushOnOffButtonUpperCaseID]
+        pushOnOffButtonUpperCase.setEnabled(false)
+    }
 
-    let pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID]
-    pushOnOffButtonLowerCase.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('smallCapsLowerCase')) {
+        let pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID]
+        pushOnOffButtonLowerCase.setEnabled(false)
+    }
 }
 
 function closePanel(panel, threadDictionary, threadIdentifier) {
@@ -950,6 +945,62 @@ function clearPopupButtonState() {
     verticalPositionPopupButton.itemWithTitle('Subscript').setState(NSControlStateValueOff)
     verticalPositionPopupButton.itemWithTitle('Ordinals').setState(NSControlStateValueOff)
     verticalPositionPopupButton.itemWithTitle('Scientific Notation').setState(NSControlStateValueOff)
+}
+
+function checkFontProps(textLayers) {
+    framework("CoreText");
+    let threadDictionary = NSThread.mainThread().threadDictionary()
+
+    const font = textLayers[0].sketchObject.font()
+    const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), nil);
+    const features = CTFontCopyFeatures(coreTextFont)
+    const settings = CTFontCopyFeatureSettings(coreTextFont)
+
+    var main = HSMain.alloc().init()
+    var featuresArray = main.bridgeArray(features)
+    var settingsArray = main.bridgeArray(settings)
+    console.log(featuresArray)
+
+    if (!featuresArray) {
+        disableUI(threadDictionary, ['all'])
+        sketch.UI.message("No typographic features in this font.")
+        return
+    }
+
+    var featureIDs = []
+    featuresArray.forEach(function(item) {
+        featureIDs.push(Number(item["CTFeatureTypeIdentifier"]))
+    })
+    console.log(featureIDs)
+
+    var settingsToDisable = []
+    if (!featureIDs.includes(10)) {
+        // Vertical Position
+        settingsToDisable.push('verticalPosition')
+    }
+    if (!featureIDs.includes(6)) {
+        // Number Spacing
+        settingsToDisable.push('numberSpacing')
+    }
+    if (!featureIDs.includes(21)) {
+        // Number Case
+        settingsToDisable.push('numberCase')
+    }
+    if (!featureIDs.includes(37)) {
+        // Small Caps Lower Case
+        settingsToDisable.push('smallCapsLowerCase')
+    }
+    if (!featureIDs.includes(38)) {
+        // Small Caps Upper Case
+        settingsToDisable.push('smallCapsUpperCase')
+    }
+
+    if (settingsToDisable.length == 5) {
+        sketch.UI.message("⚠️ The selected font doesn't support the available font features with BetterTypePanel.")
+    }
+    // console.log(settingsToDisable)
+    disableUI(threadDictionary, settingsToDisable)
+
 }
 
 function logWarning(warning) {
