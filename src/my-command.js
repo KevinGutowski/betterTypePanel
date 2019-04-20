@@ -26,9 +26,12 @@ export default function() {
     // const features = CTFontCopyFeatures(coreTextFont)
     // const settings = CTFontCopyFeatureSettings(coreTextFont)
 
-    // var main = HSMain.alloc().init()
+    var main = HSMain.alloc().init()
     // var featuresArray = main.bridgeArray(features)
     // var settingsArray = main.bridgeArray(settings)
+    main.setCallbackForTextViewSelectionChange(() => {
+        conosle.log("callback triggered")
+    })
 
     //determineProps(featuresArray);
 
