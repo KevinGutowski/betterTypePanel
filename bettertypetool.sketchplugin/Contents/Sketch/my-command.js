@@ -1,6 +1,6 @@
-var that = this;
+var globalThis = this;
 function __skpm_run (key, context) {
-  that.context = context;
+  globalThis.context = context;
 
 var exports =
 /******/ (function(modules) { // webpackBootstrap
@@ -131,8 +131,9 @@ var radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle";
   // var settingsArray = main.bridgeArray(settings)
 
   main.beginObservingTextViewSelectionChanges();
-  main.setCallbackForTextViewSelectionChange(function () {
-    conosle.log("callback triggered");
+  main.setCallbackForTextViewSelectionChange(function (notification) {
+    console.log("callback triggered");
+    console.log(notification);
   }); //determineProps(featuresArray);
 
   updateUI();
@@ -987,7 +988,7 @@ module.exports = require("sketch");
     exports[key](context);
   }
 }
-that['onRun'] = __skpm_run.bind(this, 'default');
-that['selectionChanged'] = __skpm_run.bind(this, 'selectionChanged')
+globalThis['onRun'] = __skpm_run.bind(this, 'default');
+globalThis['selectionChanged'] = __skpm_run.bind(this, 'selectionChanged')
 
 //# sourceMappingURL=my-command.js.map

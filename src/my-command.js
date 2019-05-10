@@ -32,7 +32,8 @@ export default function() {
     // var settingsArray = main.bridgeArray(settings)
     main.beginObservingTextViewSelectionChanges()
     main.setCallbackForTextViewSelectionChange(() => {
-        conosle.log("callback triggered")
+        console.log("callback triggered")
+        console.log(notification)
     })
 
     //determineProps(featuresArray);
@@ -959,4 +960,23 @@ function clearPopupButtonState() {
 
 function logWarning(warning) {
     //console.log(warning)
+}
+
+function updateUIFromSubstring() {
+    var document = sketch.getSelectedDocument()
+    var selectedLayers = document.selectedLayers.layers
+    let threadDictionary = NSThread.mainThread().threadDictionary()
+
+    if (selectedLayers == null) {
+        disableUI(threadDictionary)
+        return
+    }
+
+    var textLayers = selectedLayers.filter(layer => layer.type == "Text")
+    if (textLayers.length == 0) {
+        disableUI(threadDictionary)
+        return
+    }
+
+
 }
