@@ -95,11 +95,12 @@ var exports =
 /*!***************************!*\
   !*** ./src/my-command.js ***!
   \***************************/
-/*! exports provided: default, selectionChanged */
+/*! exports provided: default, shutdown, selectionChanged */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shutdown", function() { return shutdown; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "selectionChanged", function() { return selectionChanged; });
 /* harmony import */ var sketch__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! sketch */ "sketch");
 /* harmony import */ var sketch__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(sketch__WEBPACK_IMPORTED_MODULE_0__);
@@ -116,6 +117,7 @@ var pushOnOffButtonLowerCaseID = "com.betterTypePanel.button.lowerCase";
 var pushOnOffButtonUpperCaseID = "com.betterTypePanel.button.upperCase";
 var radioButtonLiningFiguresID = "com.betterTypePanel.radioButton.liningFigures";
 var radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle";
+var main;
 /* harmony default export */ __webpack_exports__["default"] = (function () {
   runPanel();
   setupFramework();
@@ -126,18 +128,28 @@ var radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle";
   // const features = CTFontCopyFeatures(coreTextFont)
   // const settings = CTFontCopyFeatureSettings(coreTextFont)
 
-  var main = HSMain.alloc().init();
+  main = HSMain.alloc().init();
   console.log(main.helloText()); // var featuresArray = main.bridgeArray(features)
   // var settingsArray = main.bridgeArray(settings)
 
   main.beginObservingTextViewSelectionChanges();
-  main.setCallbackForTextViewSelectionChange(function (notification) {
+  main.setCallbackForTextViewSelectionChange(function () {
     console.log("callback triggered");
-    console.log(notification);
+    var doc = sketch__WEBPACK_IMPORTED_MODULE_0___default.a.getSelectedDocument();
+    var textLayer = doc.selectedLayers.layers[0];
+
+    if (textLayer.sketchObject.isEditingText() == 1) {
+      var currentHandler = doc.sketchObject.currentHandler();
+      console.log(currentHandler.textView().selectedRanges());
+      console.log(currentHandler.textView().selectedRanges().treeAsDictionary());
+    }
   }); //determineProps(featuresArray);
 
   updateUI();
 });
+function shutdown() {
+  main.stopObservingTextViewSelectionChanges();
+}
 function selectionChanged(context) {
   framework("CoreText");
   var threadDictionary = NSThread.mainThread().threadDictionary(); // check if the panel is open, if open update UI, else just do nothing
@@ -929,10 +941,12 @@ function disableUI(threadDictionary) {
 }
 
 function closePanel(panel, threadDictionary, threadIdentifier) {
-  panel.close(); //Remove the reference to the panel
+  panel.close(); // Stop text selection listening
+
+  main.stopObservingTextViewSelectionChanges(); // Remove the reference to the panel
 
   threadDictionary.removeObjectForKey(threadIdentifier);
-  threadDictionary.panelOpen = false; //Stop this script
+  threadDictionary.panelOpen = false; // Stop this script
 
   COScript.currentCOScript().setShouldKeepAround_(false);
 } //Start with Default Settings
@@ -966,6 +980,26 @@ function clearPopupButtonState() {
 }
 
 function logWarning(warning) {//console.log(warning)
+}
+
+function updateUIFromSubstring() {
+  var document = sketch__WEBPACK_IMPORTED_MODULE_0___default.a.getSelectedDocument();
+  var selectedLayers = document.selectedLayers.layers;
+  var threadDictionary = NSThread.mainThread().threadDictionary();
+
+  if (selectedLayers == null) {
+    disableUI(threadDictionary);
+    return;
+  }
+
+  var textLayers = selectedLayers.filter(function (layer) {
+    return layer.type == "Text";
+  });
+
+  if (textLayers.length == 0) {
+    disableUI(threadDictionary);
+    return;
+  }
 }
 
 /***/ }),

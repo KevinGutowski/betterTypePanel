@@ -13,6 +13,7 @@ let pushOnOffButtonLowerCaseID = "com.betterTypePanel.button.lowerCase"
 let pushOnOffButtonUpperCaseID = "com.betterTypePanel.button.upperCase"
 let radioButtonLiningFiguresID = "com.betterTypePanel.radioButton.liningFigures"
 let radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle"
+let main
 
 export default function() {
     runPanel()
@@ -26,19 +27,31 @@ export default function() {
     // const features = CTFontCopyFeatures(coreTextFont)
     // const settings = CTFontCopyFeatureSettings(coreTextFont)
 
-    var main = HSMain.alloc().init()
+    main = HSMain.alloc().init()
     console.log(main.helloText())
     // var featuresArray = main.bridgeArray(features)
     // var settingsArray = main.bridgeArray(settings)
     main.beginObservingTextViewSelectionChanges()
     main.setCallbackForTextViewSelectionChange(() => {
         console.log("callback triggered")
-        console.log(notification)
+
+        let doc = sketch.getSelectedDocument()
+        let textLayer = doc.selectedLayers.layers[0]
+        if (textLayer.sketchObject.isEditingText() == 1) {
+            var currentHandler = doc.sketchObject.currentHandler()
+            console.log(currentHandler.textView().selectedRanges())
+            console.log(currentHandler.textView().selectedRanges().treeAsDictionary())
+        }
+
     })
 
     //determineProps(featuresArray);
 
     updateUI()
+}
+
+export function shutdown() {
+    main.stopObservingTextViewSelectionChanges()
 }
 
 export function selectionChanged(context) {
@@ -927,11 +940,14 @@ function disableUI(threadDictionary) {
 function closePanel(panel, threadDictionary, threadIdentifier) {
         panel.close()
 
-        //Remove the reference to the panel
+        // Stop text selection listening
+        main.stopObservingTextViewSelectionChanges()
+
+        // Remove the reference to the panel
         threadDictionary.removeObjectForKey(threadIdentifier)
         threadDictionary.panelOpen = false
 
-        //Stop this script
+        // Stop this script
         COScript.currentCOScript().setShouldKeepAround_(false)
 }
 
