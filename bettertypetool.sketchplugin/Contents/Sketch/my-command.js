@@ -575,7 +575,17 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
 
     if (textLayer.sketchObject.isEditingText() == 1) {
       var textView = textLayer.sketchObject.editingDelegate().textView();
-      textView.setFont(newFont);
+      var textStorage = textView.textStorage();
+      var fonts = getFontsFromTextLayer(textLayer);
+      fonts.forEach(function (fontForRange) {
+        var font = fontForRange.font;
+        var range = fontForRange.range;
+        var fontSize = font.pointSize();
+        var descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute);
+        var newFont = NSFont.fontWithDescriptor_size(descriptor, fontSize);
+        var attrsDict = NSDictionary.dictionaryWithObject_forKey(newFont, NSFontAttributeName);
+        textStorage.addAttributes_range(attrsDict, range);
+      });
       textView.didChangeText();
       didAttemptToApplyToSubstring = true;
     }
@@ -1000,6 +1010,26 @@ function updateUIFromSubstring() {
     disableUI(threadDictionary);
     return;
   }
+}
+
+function getFontsFromTextLayer(textLayer) {
+  var msTextLayer = textLayer.sketchObject;
+  var attributedString = msTextLayer.attributedStringValue();
+  var textView = msTextLayer.editingDelegate().textView();
+  var selectedRange = textView.selectedRange();
+  var effectiveRange = MOPointer.alloc().init();
+  var fonts = [];
+
+  while (selectedRange.length > 0) {
+    var font = attributedString.attribute_atIndex_longestEffectiveRange_inRange(NSFontAttributeName, selectedRange.location, effectiveRange, selectedRange);
+    selectedRange = NSMakeRange(NSMaxRange(effectiveRange.value()), NSMaxRange(selectedRange) - NSMaxRange(effectiveRange.value()));
+    fonts.push({
+      "font": font,
+      "range": effectiveRange.value()
+    });
+  }
+
+  return fonts;
 }
 
 /***/ }),

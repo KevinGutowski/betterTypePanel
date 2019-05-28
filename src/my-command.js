@@ -564,14 +564,30 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
     textLayers.forEach(textLayer => {
         let font = textLayer.sketchObject.font()
         let fontSize = font.pointSize()
-        let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+        let fontFeatureSettings = font
+            .fontDescriptor()
+            .fontAttributes()[NSFontFeatureSettingsAttribute]
         let descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute)
         let newFont = NSFont.fontWithDescriptor_size(descriptor,fontSize)
         textLayer.sketchObject.setFont(newFont)
 
         if (textLayer.sketchObject.isEditingText() == 1) {
             let textView = textLayer.sketchObject.editingDelegate().textView()
-            textView.setFont(newFont)
+            let textStorage = textView.textStorage()
+            let fonts = getFontsFromTextLayer(textLayer)
+            fonts.forEach(fontForRange => {
+                let font = fontForRange.font
+                let range = fontForRange.range
+                let fontSize = font.pointSize()
+
+                let descriptor = font
+                    .fontDescriptor()
+                    .fontDescriptorByAddingAttributes(settingsAttribute)
+
+                let newFont = NSFont.fontWithDescriptor_size(descriptor,fontSize)
+                let attrsDict = NSDictionary.dictionaryWithObject_forKey(newFont,NSFontAttributeName)
+                textStorage.addAttributes_range(attrsDict,range)
+            })
             textView.didChangeText()
             didAttemptToApplyToSubstring = true
         }
@@ -995,4 +1011,30 @@ function updateUIFromSubstring() {
     }
 
 
+}
+
+function getFontsFromTextLayer(textLayer) {
+    let msTextLayer = textLayer.sketchObject
+    let attributedString = msTextLayer.attributedStringValue()
+    let textView = msTextLayer.editingDelegate().textView()
+    let selectedRange = textView.selectedRange()
+    let effectiveRange = MOPointer.alloc().init()
+
+    let fonts = []
+
+    while (selectedRange.length > 0) {
+        let font = attributedString.attribute_atIndex_longestEffectiveRange_inRange(
+            NSFontAttributeName,
+            selectedRange.location,
+            effectiveRange,
+            selectedRange
+        )
+        selectedRange = NSMakeRange(
+            NSMaxRange(effectiveRange.value()),
+            NSMaxRange(selectedRange) - NSMaxRange(effectiveRange.value())
+        )
+
+        fonts.push({"font": font, "range": effectiveRange.value()})
+    }
+    return fonts
 }
