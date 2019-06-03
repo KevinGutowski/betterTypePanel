@@ -25,9 +25,9 @@
 - [X] When setting up the UI, set the state of the buttons properly the first time (i.e. check if there is a text object selected or not and then set the state rather than setting the default state of the UI then running `updateUI()`)
 - [X] Dark mode support
 - [X] Properly style small caps buttons
-- [ ] Basic Support for applying properties to multiple selected Text Layers
+- [X] Basic Support for applying properties to multiple selected Text Layers
 - [ ] Better communicate when fonts have unspported properties
-- [ ] Basic substring support
+- [X] Basic substring support
 
 ## Later Goals
 - [ ] Support Fractional Forms
