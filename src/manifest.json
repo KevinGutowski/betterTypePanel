@@ -15,7 +15,8 @@
       "script": "./my-command.js",
       "handlers": {
         "actions": {
-          "SelectionChanged.begin" : "selectionChanged"
+          "SelectionChanged.begin" : "selectionChanged",
+          "TextChanged.finish": "textChanged"
         }
       }
     }

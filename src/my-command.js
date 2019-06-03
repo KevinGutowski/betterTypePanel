@@ -33,16 +33,7 @@ export default function() {
     // var settingsArray = main.bridgeArray(settings)
     main.beginObservingTextViewSelectionChanges()
     main.setCallbackForTextViewSelectionChange(() => {
-        console.log("callback triggered")
-
-        let doc = sketch.getSelectedDocument()
-        let textLayer = doc.selectedLayers.layers[0]
-        if (textLayer.sketchObject.isEditingText() == 1) {
-            var currentHandler = doc.sketchObject.currentHandler()
-            console.log(currentHandler.textView().selectedRanges())
-            console.log(currentHandler.textView().selectedRanges().treeAsDictionary())
-        }
-
+        updateUI()
     })
 
     //determineProps(featuresArray);
@@ -60,6 +51,18 @@ export function selectionChanged(context) {
     // check if the panel is open, if open update UI, else just do nothing
     if (threadDictionary[threadIdentifier]) {
         updateUI()
+    } else {
+        return
+    }
+}
+
+export function textChanged() {
+    framework("CoreText");
+    let threadDictionary = NSThread.mainThread().threadDictionary()
+    // check if the panel is open, if open update UI, else just do nothing
+    if (threadDictionary[threadIdentifier]) {
+        let useFullSelection = true
+        updateUI(useFullSelection)
     } else {
         return
     }
@@ -557,10 +560,6 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
     var selectedLayers = document.selectedLayers.layers
     var textLayers = selectedLayers.filter(layer => layer.type == "Text")
 
-    //TODO: Support During Edit State of Text
-    // if (textLayer.sketchObject.isEditingText() == 1)
-    var didAttemptToApplyToSubstring = false
-
     textLayers.forEach(textLayer => {
         let font = textLayer.sketchObject.font()
         let fontSize = font.pointSize()
@@ -589,12 +588,10 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
                 textStorage.addAttributes_range(attrsDict,range)
             })
             textView.didChangeText()
-            didAttemptToApplyToSubstring = true
         }
     })
-    if (didAttemptToApplyToSubstring) { sketch.UI.message("👋 Substring styling is currently unsupported. Style applied to the whole text object instead.") }
     document.sketchObject.inspectorController().reload()
-    updateUI()
+    // updateUI()
 }
 
 function getFontForKey_Value(key, value) {
@@ -617,7 +614,7 @@ function getSettingsAttributeForKey_Value(key, value) {
     return settingsAttribute
 }
 
-function updateUI() {
+function updateUI(useFullSelection = false) {
     var document = sketch.getSelectedDocument()
     var selectedLayers = document.selectedLayers.layers
     let threadDictionary = NSThread.mainThread().threadDictionary()
@@ -633,15 +630,23 @@ function updateUI() {
         return
     }
 
-    var textLayer = textLayers[0]
-    var font = textLayer.sketchObject.font()
-    var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
-
     var textLayersFeatureSettings = []
-    textLayers.forEach(layer => {
-        let font = layer.sketchObject.font()
-        let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
-        textLayersFeatureSettings.push(fontFeatureSettings)
+    textLayers.forEach(textLayer => {
+        if (textLayer.sketchObject.isEditingText() == 1) {
+            let fonts = getFontsFromTextLayer(textLayer, useFullSelection)
+            fonts.forEach(fontForRange => {
+                let font = fontForRange.font
+                let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+                textLayersFeatureSettings.push(fontFeatureSettings)
+            })
+        } else {
+            let fonts = getFontsFromTextLayer(textLayer)
+            fonts.forEach((fontForRange, index) => {
+                let font = fontForRange.font
+                 let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+                textLayersFeatureSettings.push(fontFeatureSettings)
+            })
+        }
     })
 
     // Update uiSettings array
@@ -994,36 +999,52 @@ function logWarning(warning) {
     //console.log(warning)
 }
 
-function updateUIFromSubstring() {
-    var document = sketch.getSelectedDocument()
-    var selectedLayers = document.selectedLayers.layers
-    let threadDictionary = NSThread.mainThread().threadDictionary()
-
-    if (selectedLayers == null) {
-        disableUI(threadDictionary)
-        return
-    }
-
-    var textLayers = selectedLayers.filter(layer => layer.type == "Text")
-    if (textLayers.length == 0) {
-        disableUI(threadDictionary)
-        return
-    }
-
-
-}
-
-function getFontsFromTextLayer(textLayer) {
+function getFontsFromTextLayer(textLayer, useFullSelection = false) {
     let msTextLayer = textLayer.sketchObject
-    let attributedString = msTextLayer.attributedStringValue()
-    let textView = msTextLayer.editingDelegate().textView()
-    let selectedRange = textView.selectedRange()
     let effectiveRange = MOPointer.alloc().init()
+
+    // if editing text then need to use the textStorage rather than the attrString
+    let mutableAttrString
+    let selectedRange
+    let textView
+
+    // infer editing by checking if textView exists
+    let textViewExists = true
+    try {
+        textView = msTextLayer.editingDelegate().textView()
+    } catch {
+        textViewExists = false
+    }
+
+    if (textViewExists) {
+        let textStorage = textView.textStorage()
+        selectedRange = textView.selectedRange()
+        mutableAttrString = textStorage
+
+        // need this because selected range is 0 when going from editing state to selected frame state
+        if (useFullSelection) {
+            selectedRange = NSMakeRange(0,textLayer.text.length)
+        }
+    } else {
+        let attributedString = msTextLayer.attributedStringValue()
+        selectedRange = NSMakeRange(0,textLayer.text.length)
+        mutableAttrString = attributedString
+    }
 
     let fonts = []
 
+    if (selectedRange.length == 0) {
+        let font = mutableAttrString.attribute_atIndex_longestEffectiveRange_inRange(
+            NSFontAttributeName,
+            selectedRange.location,
+            effectiveRange,
+            selectedRange
+        )
+        fonts.push({"font": font, "range": effectiveRange.value()})
+    }
+
     while (selectedRange.length > 0) {
-        let font = attributedString.attribute_atIndex_longestEffectiveRange_inRange(
+        let font = mutableAttrString.attribute_atIndex_longestEffectiveRange_inRange(
             NSFontAttributeName,
             selectedRange.location,
             effectiveRange,

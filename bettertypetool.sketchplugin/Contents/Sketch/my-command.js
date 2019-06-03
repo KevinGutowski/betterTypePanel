@@ -95,13 +95,14 @@ var exports =
 /*!***************************!*\
   !*** ./src/my-command.js ***!
   \***************************/
-/*! exports provided: default, shutdown, selectionChanged */
+/*! exports provided: default, shutdown, selectionChanged, textChanged */
 /***/ (function(module, __webpack_exports__, __webpack_require__) {
 
 "use strict";
 __webpack_require__.r(__webpack_exports__);
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "shutdown", function() { return shutdown; });
 /* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "selectionChanged", function() { return selectionChanged; });
+/* harmony export (binding) */ __webpack_require__.d(__webpack_exports__, "textChanged", function() { return textChanged; });
 /* harmony import */ var sketch__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! sketch */ "sketch");
 /* harmony import */ var sketch__WEBPACK_IMPORTED_MODULE_0___default = /*#__PURE__*/__webpack_require__.n(sketch__WEBPACK_IMPORTED_MODULE_0__);
  // Documentation:
@@ -134,15 +135,7 @@ var main;
 
   main.beginObservingTextViewSelectionChanges();
   main.setCallbackForTextViewSelectionChange(function () {
-    console.log("callback triggered");
-    var doc = sketch__WEBPACK_IMPORTED_MODULE_0___default.a.getSelectedDocument();
-    var textLayer = doc.selectedLayers.layers[0];
-
-    if (textLayer.sketchObject.isEditingText() == 1) {
-      var currentHandler = doc.sketchObject.currentHandler();
-      console.log(currentHandler.textView().selectedRanges());
-      console.log(currentHandler.textView().selectedRanges().treeAsDictionary());
-    }
+    updateUI();
   }); //determineProps(featuresArray);
 
   updateUI();
@@ -156,6 +149,17 @@ function selectionChanged(context) {
 
   if (threadDictionary[threadIdentifier]) {
     updateUI();
+  } else {
+    return;
+  }
+}
+function textChanged() {
+  framework("CoreText");
+  var threadDictionary = NSThread.mainThread().threadDictionary(); // check if the panel is open, if open update UI, else just do nothing
+
+  if (threadDictionary[threadIdentifier]) {
+    var useFullSelection = true;
+    updateUI(useFullSelection);
   } else {
     return;
   }
@@ -561,10 +565,7 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
   var selectedLayers = document.selectedLayers.layers;
   var textLayers = selectedLayers.filter(function (layer) {
     return layer.type == "Text";
-  }); //TODO: Support During Edit State of Text
-  // if (textLayer.sketchObject.isEditingText() == 1)
-
-  var didAttemptToApplyToSubstring = false;
+  });
   textLayers.forEach(function (textLayer) {
     var font = textLayer.sketchObject.font();
     var fontSize = font.pointSize();
@@ -587,16 +588,9 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
         textStorage.addAttributes_range(attrsDict, range);
       });
       textView.didChangeText();
-      didAttemptToApplyToSubstring = true;
     }
   });
-
-  if (didAttemptToApplyToSubstring) {
-    sketch__WEBPACK_IMPORTED_MODULE_0___default.a.UI.message("👋 Substring styling is currently unsupported. Style applied to the whole text object instead.");
-  }
-
-  document.sketchObject.inspectorController().reload();
-  updateUI();
+  document.sketchObject.inspectorController().reload(); // updateUI()
 }
 
 function getFontForKey_Value(key, value) {
@@ -619,6 +613,7 @@ function getSettingsAttributeForKey_Value(key, value) {
 }
 
 function updateUI() {
+  var useFullSelection = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
   var document = sketch__WEBPACK_IMPORTED_MODULE_0___default.a.getSelectedDocument();
   var selectedLayers = document.selectedLayers.layers;
   var threadDictionary = NSThread.mainThread().threadDictionary();
@@ -637,14 +632,24 @@ function updateUI() {
     return;
   }
 
-  var textLayer = textLayers[0];
-  var font = textLayer.sketchObject.font();
-  var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
   var textLayersFeatureSettings = [];
-  textLayers.forEach(function (layer) {
-    var font = layer.sketchObject.font();
-    var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
-    textLayersFeatureSettings.push(fontFeatureSettings);
+  textLayers.forEach(function (textLayer) {
+    if (textLayer.sketchObject.isEditingText() == 1) {
+      var fonts = getFontsFromTextLayer(textLayer, useFullSelection);
+      fonts.forEach(function (fontForRange) {
+        var font = fontForRange.font;
+        var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
+        textLayersFeatureSettings.push(fontFeatureSettings);
+      });
+    } else {
+      var _fonts = getFontsFromTextLayer(textLayer);
+
+      _fonts.forEach(function (fontForRange, index) {
+        var font = fontForRange.font;
+        var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
+        textLayersFeatureSettings.push(fontFeatureSettings);
+      });
+    }
   }); // Update uiSettings array
   // need to do this because fontFeatureSettings only has
   // settings for applied options (doesn't contain state for all options)
@@ -992,39 +997,53 @@ function clearPopupButtonState() {
 function logWarning(warning) {//console.log(warning)
 }
 
-function updateUIFromSubstring() {
-  var document = sketch__WEBPACK_IMPORTED_MODULE_0___default.a.getSelectedDocument();
-  var selectedLayers = document.selectedLayers.layers;
-  var threadDictionary = NSThread.mainThread().threadDictionary();
-
-  if (selectedLayers == null) {
-    disableUI(threadDictionary);
-    return;
-  }
-
-  var textLayers = selectedLayers.filter(function (layer) {
-    return layer.type == "Text";
-  });
-
-  if (textLayers.length == 0) {
-    disableUI(threadDictionary);
-    return;
-  }
-}
-
 function getFontsFromTextLayer(textLayer) {
+  var useFullSelection = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
   var msTextLayer = textLayer.sketchObject;
-  var attributedString = msTextLayer.attributedStringValue();
-  var textView = msTextLayer.editingDelegate().textView();
-  var selectedRange = textView.selectedRange();
-  var effectiveRange = MOPointer.alloc().init();
+  var effectiveRange = MOPointer.alloc().init(); // if editing text then need to use the textStorage rather than the attrString
+
+  var mutableAttrString;
+  var selectedRange;
+  var textView; // infer editing by checking if textView exists
+
+  var textViewExists = true;
+
+  try {
+    textView = msTextLayer.editingDelegate().textView();
+  } catch (_unused) {
+    textViewExists = false;
+  }
+
+  if (textViewExists) {
+    var textStorage = textView.textStorage();
+    selectedRange = textView.selectedRange();
+    mutableAttrString = textStorage; // need this because selected range is 0 when going from editing state to selected frame state
+
+    if (useFullSelection) {
+      selectedRange = NSMakeRange(0, textLayer.text.length);
+    }
+  } else {
+    var attributedString = msTextLayer.attributedStringValue();
+    selectedRange = NSMakeRange(0, textLayer.text.length);
+    mutableAttrString = attributedString;
+  }
+
   var fonts = [];
 
-  while (selectedRange.length > 0) {
-    var font = attributedString.attribute_atIndex_longestEffectiveRange_inRange(NSFontAttributeName, selectedRange.location, effectiveRange, selectedRange);
-    selectedRange = NSMakeRange(NSMaxRange(effectiveRange.value()), NSMaxRange(selectedRange) - NSMaxRange(effectiveRange.value()));
+  if (selectedRange.length == 0) {
+    var font = mutableAttrString.attribute_atIndex_longestEffectiveRange_inRange(NSFontAttributeName, selectedRange.location, effectiveRange, selectedRange);
     fonts.push({
       "font": font,
+      "range": effectiveRange.value()
+    });
+  }
+
+  while (selectedRange.length > 0) {
+    var _font = mutableAttrString.attribute_atIndex_longestEffectiveRange_inRange(NSFontAttributeName, selectedRange.location, effectiveRange, selectedRange);
+
+    selectedRange = NSMakeRange(NSMaxRange(effectiveRange.value()), NSMaxRange(selectedRange) - NSMaxRange(effectiveRange.value()));
+    fonts.push({
+      "font": _font,
       "range": effectiveRange.value()
     });
   }
@@ -1053,6 +1072,7 @@ module.exports = require("sketch");
   }
 }
 globalThis['onRun'] = __skpm_run.bind(this, 'default');
-globalThis['selectionChanged'] = __skpm_run.bind(this, 'selectionChanged')
+globalThis['selectionChanged'] = __skpm_run.bind(this, 'selectionChanged');
+globalThis['textChanged'] = __skpm_run.bind(this, 'textChanged')
 
 //# sourceMappingURL=my-command.js.map
