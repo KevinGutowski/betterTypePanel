@@ -33,10 +33,11 @@
 - [ ] Support Fractional Forms
 - [ ] Better Support Multiple layer selection
   - [ ] Resolve applying small caps to layers with different fonts
-- [ ] Ability to select text and apply transformation to just the selected text range
+- [ ] Respect Pixelfitting settings
 - [ ] More OpenType Features! (Ligatures, Stylistic Sets, etc)
 - [ ] Text Style support (I hope Sketch will consider tweaking things on their end rather me hacking it together)
 - [ ] Better substring support
+- [ ] Keyboard shortcuts!
 
 ## Building The Plugin
 
