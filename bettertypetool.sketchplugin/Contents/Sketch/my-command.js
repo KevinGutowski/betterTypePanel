@@ -129,8 +129,7 @@ var main;
   // const features = CTFontCopyFeatures(coreTextFont)
   // const settings = CTFontCopyFeatureSettings(coreTextFont)
 
-  main = HSMain.alloc().init();
-  console.log(main.helloText()); // var featuresArray = main.bridgeArray(features)
+  main = HSMain.alloc().init(); // var featuresArray = main.bridgeArray(features)
   // var settingsArray = main.bridgeArray(settings)
 
   main.beginObservingTextViewSelectionChanges();
