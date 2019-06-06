@@ -118,6 +118,7 @@ var pushOnOffButtonLowerCaseID = "com.betterTypePanel.button.lowerCase";
 var pushOnOffButtonUpperCaseID = "com.betterTypePanel.button.upperCase";
 var radioButtonLiningFiguresID = "com.betterTypePanel.radioButton.liningFigures";
 var radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle";
+var sfSymbolSizePopupButtonID = "com.betterTypePanel.popupButton.sfSymbolSize";
 var main;
 /* harmony default export */ __webpack_exports__["default"] = (function () {
   runPanel();
@@ -232,7 +233,7 @@ function setupPanel(threadDictionary, identifier) {
   threadDictionary[verticalPositionPopupButtonID] = verticalPositionPopupButton;
   verticalPositionPopupButton.itemWithTitle('Multiple').setHidden(true);
 
-  var verticalPositionTargetFuntion = function verticalPositionTargetFuntion(sender) {
+  var verticalPositionTargetFunction = function verticalPositionTargetFunction(sender) {
     // console.log(sender.title() + ' dropdown button was selected')
     // Vertical Position
     // ID: kVerticalPositionType
@@ -277,7 +278,7 @@ function setupPanel(threadDictionary, identifier) {
   };
 
   verticalPositionPopupButton.setCOSJSTargetFunction(function (sender) {
-    return verticalPositionTargetFuntion(sender);
+    return verticalPositionTargetFunction(sender);
   });
   var row1 = NSStackView.alloc().initWithFrame(NSMakeRect(0, 0, mainViewWidth, 25));
   row1.setOrientation(NSUserInterfaceLayoutOrientationHorizontal);
@@ -503,9 +504,81 @@ function setupPanel(threadDictionary, identifier) {
   row4.setOrientation(NSUserInterfaceLayoutOrientationHorizontal);
   row4.setAlignment(NSLayoutAttributeFirstBaseline);
   row4.setSpacing(columnSpacing);
-  row4.setViews_inGravity([smallCapsLabel, smallCapsButtonGroupStackView], NSStackViewGravityLeading); // MARK: Combine rows together
+  row4.setViews_inGravity([smallCapsLabel, smallCapsButtonGroupStackView], NSStackViewGravityLeading); // MARK: SETUP ROW 5
 
-  var mainContentView = NSStackView.stackViewWithViews([row1, row2, row3, row4]);
+  var sfSymbolSizeLabel = createTextField({
+    text: "SF Symbol Size:",
+    frame: NSMakeRect(0, 0, column1width, 17),
+    alignment: NSTextAlignmentRight
+  });
+  sfSymbolSizeLabel.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(sfSymbolSizeLabel, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, column1width));
+  var sfSymbolSizePopupButton = NSPopUpButton.alloc().initWithFrame(NSMakeRect(0, 0, 150, 25));
+  sfSymbolSizePopupButton.addItemsWithTitles(['Small', 'Medium', 'Large', 'Multiple']);
+  threadDictionary[sfSymbolSizePopupButtonID] = sfSymbolSizePopupButton;
+  sfSymbolSizePopupButton.itemWithTitle('Multiple').setHidden(true);
+
+  var sfSymbolSizeTargetFunction = function sfSymbolSizeTargetFunction(sender) {
+    console.log(sender.title() + ' dropdown button was selected'); // sfSymbolSizeLabel
+    // ID: kStylisticAlternativesType 35
+    //
+    // Selectors are very brittle. Need to figure out how to read StylisticAlts
+    // from font so I'm not guessing what number the selectors are (they could change).
+    // I should get their selectors progrmatically.
+    //
+    // kStylisticAltFifteenOnSelector
+    // This is referring to Small Symbols or Glyphs for the SF Pro Text Font
+    //
+    // kStylisticAltSixteenOnSelector
+    // This is referring to Large Symbols or Glyphs for the SF Pro Text Font
+    //
+    // Note:
+    // There is no Medium Symbols checkbox for SF Pro Text
+
+    if (sender.title() == 'Small') {
+      var settingsAttributeSFSmall = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltFifteenOnSelector);
+      var settingsAttributeSFLarge = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltSixteenOffSelector);
+      var settingsAttributes = [settingsAttributeSFSmall, settingsAttributeSFLarge];
+      settingsAttributes.forEach(function (settingsAttribute) {
+        console.log(settingsAttribute);
+        updateFontFeatureSettingsAttribute(settingsAttribute);
+      });
+    } else if (sender.title() == 'Medium') {
+      var _settingsAttributeSFSmall = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltFifteenOffSelector);
+
+      var _settingsAttributeSFLarge = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltSixteenOffSelector);
+
+      var _settingsAttributes = [_settingsAttributeSFSmall, _settingsAttributeSFLarge];
+
+      _settingsAttributes.forEach(function (settingsAttribute) {
+        console.log(settingsAttribute);
+        updateFontFeatureSettingsAttribute(settingsAttribute);
+      });
+    } else if (sender.title() == 'Large') {
+      var _settingsAttributeSFSmall2 = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltFifteenOffSelector);
+
+      var _settingsAttributeSFLarge2 = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltSixteenOnSelector);
+
+      var _settingsAttributes2 = [_settingsAttributeSFSmall2, _settingsAttributeSFLarge2];
+
+      _settingsAttributes2.forEach(function (settingsAttribute) {
+        console.log(settingsAttribute);
+        updateFontFeatureSettingsAttribute(settingsAttribute);
+      });
+    } else {
+      logWarning("Out of sfSymbolSizeDropdown bounds");
+    }
+  };
+
+  sfSymbolSizePopupButton.setCOSJSTargetFunction(function (sender) {
+    return sfSymbolSizeTargetFunction(sender);
+  });
+  var row5 = NSStackView.alloc().initWithFrame(NSMakeRect(0, 0, mainViewWidth, 25));
+  row5.setOrientation(NSUserInterfaceLayoutOrientationHorizontal);
+  row5.setAlignment(NSLayoutAttributeFirstBaseline);
+  row5.setSpacing(columnSpacing);
+  row5.setViews_inGravity([sfSymbolSizeLabel, sfSymbolSizePopupButton], NSStackViewGravityLeading); // MARK: Combine rows together
+
+  var mainContentView = NSStackView.stackViewWithViews([row1, row2, row3, row4, row5]);
   mainContentView.setOrientation(NSUserInterfaceLayoutOrientationVertical);
   mainContentView.setAlignment(NSLayoutAttributeLeading);
   mainContentView.setSpacing(8);

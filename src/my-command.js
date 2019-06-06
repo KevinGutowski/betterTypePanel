@@ -13,6 +13,7 @@ let pushOnOffButtonLowerCaseID = "com.betterTypePanel.button.lowerCase"
 let pushOnOffButtonUpperCaseID = "com.betterTypePanel.button.upperCase"
 let radioButtonLiningFiguresID = "com.betterTypePanel.radioButton.liningFigures"
 let radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle"
+let sfSymbolSizePopupButtonID = "com.betterTypePanel.popupButton.sfSymbolSize"
 let main
 
 export default function() {
@@ -115,7 +116,7 @@ function runPanel() {
 
 function setupPanel(threadDictionary, identifier) {
     var panelWidth = 312
-    var panelHeight = 210
+    var panelHeight = 300
     let panel = NSPanel.alloc().init()
     panel.setFrame_display(NSMakeRect(0, 0, panelWidth, panelHeight), true)
     panel.setStyleMask(NSTexturedBackgroundWindowMask | NSTitledWindowMask | NSClosableWindowMask)
@@ -165,7 +166,7 @@ function setupPanel(threadDictionary, identifier) {
     threadDictionary[verticalPositionPopupButtonID] = verticalPositionPopupButton
     verticalPositionPopupButton.itemWithTitle('Multiple').setHidden(true)
 
-    let verticalPositionTargetFuntion = (sender) => {
+    let verticalPositionTargetFunction = (sender) => {
         // console.log(sender.title() + ' dropdown button was selected')
         // Vertical Position
         // ID: kVerticalPositionType
@@ -205,7 +206,7 @@ function setupPanel(threadDictionary, identifier) {
         }
     }
 
-    verticalPositionPopupButton.setCOSJSTargetFunction(sender => verticalPositionTargetFuntion(sender))
+    verticalPositionPopupButton.setCOSJSTargetFunction(sender => verticalPositionTargetFunction(sender))
 
     var row1 = NSStackView.alloc().initWithFrame(NSMakeRect(0,0,mainViewWidth,25))
     row1.setOrientation(NSUserInterfaceLayoutOrientationHorizontal)
@@ -490,8 +491,90 @@ function setupPanel(threadDictionary, identifier) {
     row4.setSpacing(columnSpacing)
     row4.setViews_inGravity([smallCapsLabel, smallCapsButtonGroupStackView], NSStackViewGravityLeading)
 
+    // MARK: SETUP ROW 5
+    var sfSymbolSizeLabel = createTextField({
+        text: "SF Symbol Size:",
+        frame: NSMakeRect(0,0,column1width,17),
+        alignment: NSTextAlignmentRight
+    })
+
+    sfSymbolSizeLabel.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(
+        sfSymbolSizeLabel,
+        NSLayoutAttributeWidth,
+        NSLayoutRelationEqual,
+        nil,
+        NSLayoutAttributeNotAnAttribute,
+        1.0,
+        column1width
+    ))
+
+    var sfSymbolSizePopupButton = NSPopUpButton.alloc().initWithFrame(NSMakeRect(0,0,150,25))
+    sfSymbolSizePopupButton.addItemsWithTitles([
+        'Small',
+        'Medium',
+        'Large',
+        'Multiple'
+    ])
+    threadDictionary[sfSymbolSizePopupButtonID] = sfSymbolSizePopupButton
+    sfSymbolSizePopupButton.itemWithTitle('Multiple').setHidden(true)
+
+    let sfSymbolSizeTargetFunction = (sender) => {
+        console.log(sender.title() + ' dropdown button was selected')
+        // sfSymbolSizeLabel
+        // ID: kStylisticAlternativesType 35
+        //
+        // Selectors are very brittle. Need to figure out how to read StylisticAlts
+        // from font so I'm not guessing what number the selectors are (they could change).
+        // I should get their selectors progrmatically.
+        //
+        // kStylisticAltFifteenOnSelector
+        // This is referring to Small Symbols or Glyphs for the SF Pro Text Font
+        //
+        // kStylisticAltSixteenOnSelector
+        // This is referring to Large Symbols or Glyphs for the SF Pro Text Font
+        //
+        // Note:
+        // There is no Medium Symbols checkbox for SF Pro Text
+        if (sender.title() == 'Small') {
+            let settingsAttributeSFSmall = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltFifteenOnSelector)
+            let settingsAttributeSFLarge = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltSixteenOffSelector)
+            let settingsAttributes = [settingsAttributeSFSmall,settingsAttributeSFLarge]
+            settingsAttributes.forEach(settingsAttribute => {
+                console.log(settingsAttribute)
+                updateFontFeatureSettingsAttribute(settingsAttribute)
+            })
+        } else if (sender.title() == 'Medium') {
+            let settingsAttributeSFSmall = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltFifteenOffSelector)
+            let settingsAttributeSFLarge = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltSixteenOffSelector)
+            let settingsAttributes = [settingsAttributeSFSmall,settingsAttributeSFLarge]
+            settingsAttributes.forEach(settingsAttribute => {
+                console.log(settingsAttribute)
+                updateFontFeatureSettingsAttribute(settingsAttribute)
+            })
+        } else if (sender.title() == 'Large') {
+            let settingsAttributeSFSmall = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltFifteenOffSelector)
+            let settingsAttributeSFLarge = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltSixteenOnSelector)
+            let settingsAttributes = [settingsAttributeSFSmall,settingsAttributeSFLarge]
+            settingsAttributes.forEach(settingsAttribute => {
+                console.log(settingsAttribute)
+                updateFontFeatureSettingsAttribute(settingsAttribute)
+            })
+        } else {
+            logWarning("Out of sfSymbolSizeDropdown bounds")
+        }
+    }
+
+    sfSymbolSizePopupButton.setCOSJSTargetFunction(sender => sfSymbolSizeTargetFunction(sender))
+
+    var row5 = NSStackView.alloc().initWithFrame(NSMakeRect(0,0,mainViewWidth,25))
+    row5.setOrientation(NSUserInterfaceLayoutOrientationHorizontal)
+    row5.setAlignment(NSLayoutAttributeFirstBaseline)
+    row5.setSpacing(columnSpacing)
+    row5.setViews_inGravity([sfSymbolSizeLabel,sfSymbolSizePopupButton],NSStackViewGravityLeading)
+
+
     // MARK: Combine rows together
-    var mainContentView = NSStackView.stackViewWithViews([row1,row2,row3, row4])
+    var mainContentView = NSStackView.stackViewWithViews([row1,row2,row3, row4, row5])
     mainContentView.setOrientation(NSUserInterfaceLayoutOrientationVertical)
     mainContentView.setAlignment(NSLayoutAttributeLeading)
     mainContentView.setSpacing(8)
