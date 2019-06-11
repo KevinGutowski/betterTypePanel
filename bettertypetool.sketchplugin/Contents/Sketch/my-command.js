@@ -111,6 +111,7 @@ __webpack_require__.r(__webpack_exports__);
 
 COScript.currentCOScript().setShouldKeepAround_(true);
 var threadIdentifier = "com.betterTypePanel";
+var panelID = "com.betterTypePanel.panel";
 var verticalPositionPopupButtonID = "com.betterTypePanel.popupButton.verticalPosition";
 var radioButtonProportionalID = "com.betterTypePanel.radioButton.proportional";
 var radioButtonMonospacedOrTabularID = "com.betterTypePanel.radioButton.monospaced";
@@ -119,6 +120,7 @@ var pushOnOffButtonUpperCaseID = "com.betterTypePanel.button.upperCase";
 var radioButtonLiningFiguresID = "com.betterTypePanel.radioButton.liningFigures";
 var radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle";
 var sfSymbolSizePopupButtonID = "com.betterTypePanel.popupButton.sfSymbolSize";
+var sfSymbolSizeRow = "com.betterTypePanel.row.sfSymbolSize";
 var main;
 /* harmony default export */ __webpack_exports__["default"] = (function () {
   runPanel();
@@ -216,6 +218,7 @@ function setupPanel(threadDictionary, identifier) {
   panel.setLevel(NSFloatingWindowLevel);
   panel.standardWindowButton(NSWindowMiniaturizeButton).setHidden(true);
   panel.standardWindowButton(NSWindowZoomButton).setHidden(true);
+  threadDictionary[panelID] = panel;
   var column1width = 109;
   var column2width = 171;
   var columnSpacing = 4;
@@ -518,7 +521,8 @@ function setupPanel(threadDictionary, identifier) {
   sfSymbolSizePopupButton.itemWithTitle('Multiple').setHidden(true);
 
   var sfSymbolSizeTargetFunction = function sfSymbolSizeTargetFunction(sender) {
-    console.log(sender.title() + ' dropdown button was selected'); // sfSymbolSizeLabel
+    //console.log(sender.title() + ' dropdown button was selected')
+    // sfSymbolSizeLabel
     // ID: kStylisticAlternativesType 35
     //
     // Selectors are very brittle. Need to figure out how to read StylisticAlts
@@ -533,13 +537,12 @@ function setupPanel(threadDictionary, identifier) {
     //
     // Note:
     // There is no Medium Symbols checkbox for SF Pro Text
-
     if (sender.title() == 'Small') {
       var settingsAttributeSFSmall = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltFifteenOnSelector);
       var settingsAttributeSFLarge = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltSixteenOffSelector);
       var settingsAttributes = [settingsAttributeSFSmall, settingsAttributeSFLarge];
       settingsAttributes.forEach(function (settingsAttribute) {
-        console.log(settingsAttribute);
+        //console.log(settingsAttribute)
         updateFontFeatureSettingsAttribute(settingsAttribute);
       });
     } else if (sender.title() == 'Medium') {
@@ -550,7 +553,7 @@ function setupPanel(threadDictionary, identifier) {
       var _settingsAttributes = [_settingsAttributeSFSmall, _settingsAttributeSFLarge];
 
       _settingsAttributes.forEach(function (settingsAttribute) {
-        console.log(settingsAttribute);
+        //console.log(settingsAttribute)
         updateFontFeatureSettingsAttribute(settingsAttribute);
       });
     } else if (sender.title() == 'Large') {
@@ -561,7 +564,7 @@ function setupPanel(threadDictionary, identifier) {
       var _settingsAttributes2 = [_settingsAttributeSFSmall2, _settingsAttributeSFLarge2];
 
       _settingsAttributes2.forEach(function (settingsAttribute) {
-        console.log(settingsAttribute);
+        //console.log(settingsAttribute)
         updateFontFeatureSettingsAttribute(settingsAttribute);
       });
     } else {
@@ -576,7 +579,9 @@ function setupPanel(threadDictionary, identifier) {
   row5.setOrientation(NSUserInterfaceLayoutOrientationHorizontal);
   row5.setAlignment(NSLayoutAttributeFirstBaseline);
   row5.setSpacing(columnSpacing);
-  row5.setViews_inGravity([sfSymbolSizeLabel, sfSymbolSizePopupButton], NSStackViewGravityLeading); // MARK: Combine rows together
+  row5.setViews_inGravity([sfSymbolSizeLabel, sfSymbolSizePopupButton], NSStackViewGravityLeading);
+  threadDictionary[sfSymbolSizeRow] = row5;
+  row5.setHidden(true); // MARK: Combine rows together
 
   var mainContentView = NSStackView.stackViewWithViews([row1, row2, row3, row4, row5]);
   mainContentView.setOrientation(NSUserInterfaceLayoutOrientationVertical);
@@ -710,6 +715,7 @@ function updateUI() {
       var fonts = getFontsFromTextLayer(textLayer, useFullSelection);
       fonts.forEach(function (fontForRange) {
         var font = fontForRange.font;
+        checkToShowSFSymbolOption(font);
         var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
         textLayersFeatureSettings.push(fontFeatureSettings);
       });
@@ -718,6 +724,7 @@ function updateUI() {
 
       _fonts.forEach(function (fontForRange, index) {
         var font = fontForRange.font;
+        checkToShowSFSymbolOption(font);
         var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
         textLayersFeatureSettings.push(fontFeatureSettings);
       });
@@ -748,10 +755,13 @@ function updateUI() {
       // 'lining', 'oldStyle'
       'smallCapsLowerCase': [false],
       // bool
-      'smallCapsUpperCase': [false] // bool
+      'smallCapsUpperCase': [false],
+      // bool
+      'sfSymbolSize': ['medium'] // 'small', 'medium', 'large'
 
     };
   } else {
+    // Get an updated list of settings from textLayerFeatureSettings array
     updatedUISettings = modifyUISettings(textLayersFeatureSettings, getDefaultUISettings);
   } //Update UI Panel with only one update (to prevent flickering)
 
@@ -762,7 +772,7 @@ function updateUI() {
         var verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID];
         verticalPositionPopupButton.setEnabled(true); //Clear mixed state items before setting them
 
-        clearPopupButtonState();
+        clearVerticalPositionPopupButtonState();
 
         if (updatedUISettings[uiSetting].length > 1) {
           verticalPositionPopupButton.selectItemWithTitle('Multiple');
@@ -877,6 +887,38 @@ function updateUI() {
           pushOnOffButtonLowerCase.setState(NSOnState);
         }
       }
+    } else if (uiSetting == 'sfSymbolSize') {
+      (function () {
+        var sfSymbolSizePopupButton = threadDictionary[sfSymbolSizePopupButtonID];
+        sfSymbolSizePopupButton.setEnabled(true);
+        clearSFSymbolSizePopupButton();
+
+        if (updatedUISettings[uiSetting].length > 1) {
+          sfSymbolSizePopupButton.selectItemWithTitle('Multiple');
+          updatedUISettings[uiSetting].forEach(function (sfSymbolSizeSetting) {
+            if (sfSymbolSizeSetting == 'small') {
+              sfSymbolSizePopupButton.itemWithTitle('Small').setState(NSControlStateValueMixed);
+            } else if (sfSymbolSizeSetting == 'medium') {
+              sfSymbolSizePopupButton.itemWithTitle('Medium').setState(NSControlStateValueMixed);
+            } else if (sfSymbolSizeSetting == 'large') {
+              verticalPositionPopupButton.itemWithTitle('Large').setState(NSControlStateValueMixed);
+            }
+          });
+        } else {
+          if (updatedUISettings[uiSetting][0] == 'small') {
+            sfSymbolSizePopupButton.selectItemWithTitle('Small');
+            sfSymbolSizePopupButton.itemWithTitle('Small').setState(NSControlStateValueOn);
+          } else if (updatedUISettings[uiSetting][0] == 'medium') {
+            sfSymbolSizePopupButton.selectItemWithTitle('Medium');
+            sfSymbolSizePopupButton.itemWithTitle('Medium').setState(NSControlStateValueOn);
+          } else if (updatedUISettings[uiSetting][0] == 'large') {
+            sfSymbolSizePopupButton.selectItemWithTitle('Large');
+            sfSymbolSizePopupButton.itemWithTitle('Large').setState(NSControlStateValueOn);
+          } else {
+            logWarning('BetterTypeTool: ERROR Attempting update panel state - Out of scope of sfSymbolSize options');
+          }
+        }
+      })();
     } else {
       logWarning('Error: Unhandled uiSetting Property');
       logWarning(updatedUISettings[uiSetting]);
@@ -890,7 +932,8 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
     "numberSpacing": [],
     "numberCase": [],
     "smallCapsLowerCase": [],
-    "smallCapsUpperCase": []
+    "smallCapsUpperCase": [],
+    "sfSymbolSize": []
   };
 
   var _loop = function _loop() {
@@ -982,6 +1025,23 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
             logWarning("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps");
           }
         }
+
+        if (featureTypeIdentifierKey == 35) {
+          // kStylisticAlternatives
+          if (featureSelectorIdentifierKey == 30) {
+            // kStylisticAltFifteenOnSelector
+            currentLayerSettings.sfSymbolSize = 'small';
+          } else if (featureSelectorIdentifierKey == 31) {
+            // kStylisticAltFifteenOffSelector
+            logWarning("WARNING: Unhandled Attempt to Set 15th Stylistic Alternative off");
+          } else if (featureSelectorIdentifierKey == 32) {
+            // kStylisticAltSixteenOnSelector
+            currentLayerSettings.sfSymbolSize = 'large';
+          } else if (featureSelectorIdentifierKey == 32) {
+            // kStylisticAltSixteenOffSelector
+            logWarning("WARNING: Unhandled Attempt to Set 16th Stylistic Alternative off");
+          }
+        }
       });
     } // Push current layer properties onto settingsCollection
 
@@ -995,7 +1055,7 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
     var key;
 
     _loop();
-  } //Deduplicate settingsCollection to only have unique entries
+  } // Deduplicate settingsCollection to only have unique entries
 
 
   for (var property in settingsCollection) {
@@ -1025,6 +1085,8 @@ function disableUI(threadDictionary) {
   pushOnOffButtonUpperCase.setEnabled(false);
   var pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID];
   pushOnOffButtonLowerCase.setEnabled(false);
+  var sfSymbolSizePopupButton = threadDictionary[sfSymbolSizePopupButtonID];
+  sfSymbolSizePopupButton.setEnabled(false);
 }
 
 function closePanel(panel, threadDictionary, threadIdentifier) {
@@ -1049,14 +1111,16 @@ function getDefaultUISettings() {
     // 'lining', 'oldStyle'
     'smallCapsLowerCase': false,
     // bool
-    'smallCapsUpperCase': false // bool
-    // If updating this list remember to update the default updatedUISettings
+    'smallCapsUpperCase': false,
+    // bool
+    'sfSymbolSize': 'medium' // If updating this list remember to update the default updatedUISettings
     // TODO: Refactor so that the Default UI settings is in one place.
 
   };
-}
+} // TODO: Make more generic to support both popupbuttons
 
-function clearPopupButtonState() {
+
+function clearVerticalPositionPopupButtonState() {
   var threadDictionary = NSThread.mainThread().threadDictionary();
   var verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID];
   verticalPositionPopupButton.itemWithTitle('Default Position').setState(NSControlStateValueOff);
@@ -1064,6 +1128,14 @@ function clearPopupButtonState() {
   verticalPositionPopupButton.itemWithTitle('Subscript').setState(NSControlStateValueOff);
   verticalPositionPopupButton.itemWithTitle('Ordinals').setState(NSControlStateValueOff);
   verticalPositionPopupButton.itemWithTitle('Scientific Notation').setState(NSControlStateValueOff);
+}
+
+function clearSFSymbolSizePopupButton() {
+  var threadDictionary = NSThread.mainThread().threadDictionary();
+  var sfSymbolSizePopupButton = threadDictionary[sfSymbolSizePopupButtonID];
+  sfSymbolSizePopupButton.itemWithTitle('Small').setState(NSControlStateValueOff);
+  sfSymbolSizePopupButton.itemWithTitle('Medium').setState(NSControlStateValueOff);
+  sfSymbolSizePopupButton.itemWithTitle('Large').setState(NSControlStateValueOff);
 }
 
 function logWarning(warning) {//console.log(warning)
@@ -1121,6 +1193,37 @@ function getFontsFromTextLayer(textLayer) {
   }
 
   return fonts;
+}
+
+function checkToShowSFSymbolOption(font) {
+  var familyName = font.familyName();
+  var showSFSymbolOption = false;
+  var supportedFontFamilies = ["SF Pro Text", "SF Pro Rounded", "SF Pro Display", "SF Compact Text", "SF Compact Rounded", "SF Compact Display"];
+  var threadDictionary = NSThread.mainThread().threadDictionary();
+  var row5 = threadDictionary[sfSymbolSizeRow];
+  var panel = threadDictionary[panelID];
+  var panelX = panel.frame().origin.x;
+  var panelY = panel.frame().origin.y;
+  var panelWidth = panel.frame().size.height;
+  var panelHeight = panel.frame().size.height;
+  supportedFontFamilies.forEach(function (fontFamily) {
+    if (familyName == fontFamily) {
+      showSFSymbolOption = true; // TODO Don't hard code these values
+
+      if (panelHeight != 235) {
+        panel.setFrame_display_animate(NSMakeRect(panelX, panelY - 25, 312, 210 + 25), false, true);
+        row5.setHidden(false);
+      }
+    }
+  });
+
+  if (!showSFSymbolOption) {
+    // hide UI
+    if (panelHeight != 210) {
+      row5.setHidden(true);
+      panel.setFrame_display_animate(NSMakeRect(panelX, panelY + 25, 312, 210), false, true);
+    }
+  }
 }
 
 /***/ }),
