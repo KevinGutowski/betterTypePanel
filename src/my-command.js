@@ -1238,7 +1238,7 @@ function checkToShowSFSymbolOption(font) {
             showSFSymbolOption = true
             // TODO Don't hard code these values
             if (panelHeight != 235) {
-                panel.setFrame_display_animate(NSMakeRect(panelX, panelY - 25, 312, 210 + 25), false, true)
+                panel.setFrame_display_animate(NSMakeRect(panelX, panelY - 25, 312, 210 + 25), true, true)
                 row5.setHidden(false)
             }
         }
@@ -1248,7 +1248,7 @@ function checkToShowSFSymbolOption(font) {
         // hide UI
         if (panelHeight != 210) {
             row5.setHidden(true)
-            panel.setFrame_display_animate(NSMakeRect(panelX, panelY + 25, 312, 210), false, true)
+            panel.setFrame_display_animate(NSMakeRect(panelX, panelY + 25, 312, 210), true, true)
         }
     }
 }
