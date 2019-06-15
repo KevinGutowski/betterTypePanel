@@ -6,6 +6,7 @@ import sketch from 'sketch'
 COScript.currentCOScript().setShouldKeepAround_(true)
 
 let threadIdentifier = "com.betterTypePanel"
+let panelID = "com.betterTypePanel.panel"
 let verticalPositionPopupButtonID = "com.betterTypePanel.popupButton.verticalPosition"
 let radioButtonProportionalID = "com.betterTypePanel.radioButton.proportional"
 let radioButtonMonospacedOrTabularID = "com.betterTypePanel.radioButton.monospaced"
@@ -13,6 +14,8 @@ let pushOnOffButtonLowerCaseID = "com.betterTypePanel.button.lowerCase"
 let pushOnOffButtonUpperCaseID = "com.betterTypePanel.button.upperCase"
 let radioButtonLiningFiguresID = "com.betterTypePanel.radioButton.liningFigures"
 let radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle"
+let sfSymbolSizePopupButtonID = "com.betterTypePanel.popupButton.sfSymbolSize"
+let sfSymbolSizeRow = "com.betterTypePanel.row.sfSymbolSize"
 let main
 
 export default function() {
@@ -128,6 +131,7 @@ function setupPanel(threadDictionary, identifier) {
     panel.standardWindowButton(NSWindowMiniaturizeButton).setHidden(true)
     panel.standardWindowButton(NSWindowZoomButton).setHidden(true)
 
+    threadDictionary[panelID] = panel
 
     const column1width = 109
     const column2width = 171
@@ -165,7 +169,7 @@ function setupPanel(threadDictionary, identifier) {
     threadDictionary[verticalPositionPopupButtonID] = verticalPositionPopupButton
     verticalPositionPopupButton.itemWithTitle('Multiple').setHidden(true)
 
-    let verticalPositionTargetFuntion = (sender) => {
+    let verticalPositionTargetFunction = (sender) => {
         // console.log(sender.title() + ' dropdown button was selected')
         // Vertical Position
         // ID: kVerticalPositionType
@@ -205,7 +209,7 @@ function setupPanel(threadDictionary, identifier) {
         }
     }
 
-    verticalPositionPopupButton.setCOSJSTargetFunction(sender => verticalPositionTargetFuntion(sender))
+    verticalPositionPopupButton.setCOSJSTargetFunction(sender => verticalPositionTargetFunction(sender))
 
     var row1 = NSStackView.alloc().initWithFrame(NSMakeRect(0,0,mainViewWidth,25))
     row1.setOrientation(NSUserInterfaceLayoutOrientationHorizontal)
@@ -490,8 +494,92 @@ function setupPanel(threadDictionary, identifier) {
     row4.setSpacing(columnSpacing)
     row4.setViews_inGravity([smallCapsLabel, smallCapsButtonGroupStackView], NSStackViewGravityLeading)
 
+    // MARK: SETUP ROW 5
+    var sfSymbolSizeLabel = createTextField({
+        text: "SF Symbol Size:",
+        frame: NSMakeRect(0,0,column1width,17),
+        alignment: NSTextAlignmentRight
+    })
+
+    sfSymbolSizeLabel.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(
+        sfSymbolSizeLabel,
+        NSLayoutAttributeWidth,
+        NSLayoutRelationEqual,
+        nil,
+        NSLayoutAttributeNotAnAttribute,
+        1.0,
+        column1width
+    ))
+
+    var sfSymbolSizePopupButton = NSPopUpButton.alloc().initWithFrame(NSMakeRect(0,0,150,25))
+    sfSymbolSizePopupButton.addItemsWithTitles([
+        'Small',
+        'Medium',
+        'Large',
+        'Multiple'
+    ])
+    threadDictionary[sfSymbolSizePopupButtonID] = sfSymbolSizePopupButton
+    sfSymbolSizePopupButton.itemWithTitle('Multiple').setHidden(true)
+
+    let sfSymbolSizeTargetFunction = (sender) => {
+        //console.log(sender.title() + ' dropdown button was selected')
+        // sfSymbolSizeLabel
+        // ID: kStylisticAlternativesType 35
+        //
+        // Selectors are very brittle. Need to figure out how to read StylisticAlts
+        // from font so I'm not guessing what number the selectors are (they could change).
+        // I should get their selectors progrmatically.
+        //
+        // kStylisticAltFifteenOnSelector
+        // This is referring to Small Symbols or Glyphs for the SF Pro Text Font
+        //
+        // kStylisticAltSixteenOnSelector
+        // This is referring to Large Symbols or Glyphs for the SF Pro Text Font
+        //
+        // Note:
+        // There is no Medium Symbols checkbox for SF Pro Text
+        if (sender.title() == 'Small') {
+            let settingsAttributeSFSmall = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltFifteenOnSelector)
+            let settingsAttributeSFLarge = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltSixteenOffSelector)
+            let settingsAttributes = [settingsAttributeSFSmall,settingsAttributeSFLarge]
+            settingsAttributes.forEach(settingsAttribute => {
+                //console.log(settingsAttribute)
+                updateFontFeatureSettingsAttribute(settingsAttribute)
+            })
+        } else if (sender.title() == 'Medium') {
+            let settingsAttributeSFSmall = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltFifteenOffSelector)
+            let settingsAttributeSFLarge = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltSixteenOffSelector)
+            let settingsAttributes = [settingsAttributeSFSmall,settingsAttributeSFLarge]
+            settingsAttributes.forEach(settingsAttribute => {
+                //console.log(settingsAttribute)
+                updateFontFeatureSettingsAttribute(settingsAttribute)
+            })
+        } else if (sender.title() == 'Large') {
+            let settingsAttributeSFSmall = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltFifteenOffSelector)
+            let settingsAttributeSFLarge = getSettingsAttributeForKey_Value(kStylisticAlternativesType, kStylisticAltSixteenOnSelector)
+            let settingsAttributes = [settingsAttributeSFSmall,settingsAttributeSFLarge]
+            settingsAttributes.forEach(settingsAttribute => {
+                //console.log(settingsAttribute)
+                updateFontFeatureSettingsAttribute(settingsAttribute)
+            })
+        } else {
+            logWarning("Out of sfSymbolSizeDropdown bounds")
+        }
+    }
+
+    sfSymbolSizePopupButton.setCOSJSTargetFunction(sender => sfSymbolSizeTargetFunction(sender))
+
+    var row5 = NSStackView.alloc().initWithFrame(NSMakeRect(0,0,mainViewWidth,25))
+    row5.setOrientation(NSUserInterfaceLayoutOrientationHorizontal)
+    row5.setAlignment(NSLayoutAttributeFirstBaseline)
+    row5.setSpacing(columnSpacing)
+    row5.setViews_inGravity([sfSymbolSizeLabel,sfSymbolSizePopupButton],NSStackViewGravityLeading)
+
+    threadDictionary[sfSymbolSizeRow] = row5
+    row5.setHidden(true)
+
     // MARK: Combine rows together
-    var mainContentView = NSStackView.stackViewWithViews([row1,row2,row3, row4])
+    var mainContentView = NSStackView.stackViewWithViews([row1,row2,row3, row4, row5])
     mainContentView.setOrientation(NSUserInterfaceLayoutOrientationVertical)
     mainContentView.setAlignment(NSLayoutAttributeLeading)
     mainContentView.setSpacing(8)
@@ -635,6 +723,7 @@ function updateUI(useFullSelection = false) {
             let fonts = getFontsFromTextLayer(textLayer, useFullSelection)
             fonts.forEach(fontForRange => {
                 let font = fontForRange.font
+                checkToShowSFSymbolOption(font)
                 let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
                 textLayersFeatureSettings.push(fontFeatureSettings)
             })
@@ -642,6 +731,7 @@ function updateUI(useFullSelection = false) {
             let fonts = getFontsFromTextLayer(textLayer)
             fonts.forEach((fontForRange, index) => {
                 let font = fontForRange.font
+                checkToShowSFSymbolOption(font)
                  let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
                 textLayersFeatureSettings.push(fontFeatureSettings)
             })
@@ -668,9 +758,11 @@ function updateUI(useFullSelection = false) {
             'numberSpacing': ['proportional'], // 'proportional', 'monospaced'
             'numberCase': ['lining'], // 'lining', 'oldStyle'
             'smallCapsLowerCase': [false], // bool
-            'smallCapsUpperCase': [false] // bool
+            'smallCapsUpperCase': [false], // bool
+            'sfSymbolSize': ['medium'] // 'small', 'medium', 'large'
         }
     } else {
+        // Get an updated list of settings from textLayerFeatureSettings array
         updatedUISettings = modifyUISettings(textLayersFeatureSettings, getDefaultUISettings)
     }
 
@@ -682,7 +774,7 @@ function updateUI(useFullSelection = false) {
             verticalPositionPopupButton.setEnabled(true)
 
             //Clear mixed state items before setting them
-            clearPopupButtonState()
+            clearVerticalPositionPopupButtonState()
 
             if (updatedUISettings[uiSetting].length > 1) {
                 verticalPositionPopupButton.selectItemWithTitle('Multiple')
@@ -804,7 +896,38 @@ function updateUI(useFullSelection = false) {
                 }
             }
 
+        } else if (uiSetting == 'sfSymbolSize') {
+            let sfSymbolSizePopupButton = threadDictionary[sfSymbolSizePopupButtonID]
+            sfSymbolSizePopupButton.setEnabled(true)
 
+            clearSFSymbolSizePopupButton()
+
+            if (updatedUISettings[uiSetting].length > 1) {
+                sfSymbolSizePopupButton.selectItemWithTitle('Multiple')
+
+                updatedUISettings[uiSetting].forEach(sfSymbolSizeSetting => {
+                    if (sfSymbolSizeSetting == 'small') {
+                        sfSymbolSizePopupButton.itemWithTitle('Small').setState(NSControlStateValueMixed)
+                    } else if (sfSymbolSizeSetting == 'medium') {
+                        sfSymbolSizePopupButton.itemWithTitle('Medium').setState(NSControlStateValueMixed)
+                    } else if (sfSymbolSizeSetting == 'large') {
+                        verticalPositionPopupButton.itemWithTitle('Large').setState(NSControlStateValueMixed)
+                    }
+                })
+            } else {
+                if (updatedUISettings[uiSetting][0] == 'small') {
+                    sfSymbolSizePopupButton.selectItemWithTitle('Small')
+                    sfSymbolSizePopupButton.itemWithTitle('Small').setState(NSControlStateValueOn)
+                } else if (updatedUISettings[uiSetting][0] == 'medium') {
+                    sfSymbolSizePopupButton.selectItemWithTitle('Medium')
+                    sfSymbolSizePopupButton.itemWithTitle('Medium').setState(NSControlStateValueOn)
+                } else if (updatedUISettings[uiSetting][0] == 'large'){
+                    sfSymbolSizePopupButton.selectItemWithTitle('Large')
+                    sfSymbolSizePopupButton.itemWithTitle('Large').setState(NSControlStateValueOn)
+                } else {
+                    logWarning('BetterTypeTool: ERROR Attempting update panel state - Out of scope of sfSymbolSize options')
+                }
+            }
         } else {
             logWarning('Error: Unhandled uiSetting Property')
             logWarning(updatedUISettings[uiSetting])
@@ -819,7 +942,8 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
         "numberSpacing": [],
         "numberCase": [],
         "smallCapsLowerCase": [],
-        "smallCapsUpperCase": []
+        "smallCapsUpperCase": [],
+        "sfSymbolSize": []
     }
 
     for (var i = 0; i < textLayersFeatureSettings.length; i++) {
@@ -913,6 +1037,23 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
                         logWarning("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps")
                     }
                 }
+
+                if (featureTypeIdentifierKey == 35) {
+                    // kStylisticAlternatives
+                    if (featureSelectorIdentifierKey == 30) {
+                        // kStylisticAltFifteenOnSelector
+                        currentLayerSettings.sfSymbolSize = 'small'
+                    } else if (featureSelectorIdentifierKey == 31) {
+                        // kStylisticAltFifteenOffSelector
+                        logWarning("WARNING: Unhandled Attempt to Set 15th Stylistic Alternative off")
+                    } else if (featureSelectorIdentifierKey == 32) {
+                        // kStylisticAltSixteenOnSelector
+                        currentLayerSettings.sfSymbolSize = 'large'
+                    } else if (featureSelectorIdentifierKey == 32) {
+                        // kStylisticAltSixteenOffSelector
+                        logWarning("WARNING: Unhandled Attempt to Set 16th Stylistic Alternative off")
+                    }
+                }
             })
         }
 
@@ -923,7 +1064,7 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
 
     }
 
-    //Deduplicate settingsCollection to only have unique entries
+    // Deduplicate settingsCollection to only have unique entries
     for (var property in settingsCollection) {
         settingsCollection[property] = settingsCollection[property].filter(onlyUnique)
     }
@@ -955,6 +1096,9 @@ function disableUI(threadDictionary) {
 
     let pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID]
     pushOnOffButtonLowerCase.setEnabled(false)
+
+    let sfSymbolSizePopupButton = threadDictionary[sfSymbolSizePopupButtonID]
+    sfSymbolSizePopupButton.setEnabled(false)
 }
 
 function closePanel(panel, threadDictionary, threadIdentifier) {
@@ -978,13 +1122,15 @@ function getDefaultUISettings() {
         'numberSpacing': 'proportional', // 'proportional', 'monospaced'
         'numberCase': 'lining', // 'lining', 'oldStyle'
         'smallCapsLowerCase': false, // bool
-        'smallCapsUpperCase': false // bool
+        'smallCapsUpperCase': false, // bool
+        'sfSymbolSize': 'medium'
         // If updating this list remember to update the default updatedUISettings
         // TODO: Refactor so that the Default UI settings is in one place.
     }
 }
 
-function clearPopupButtonState() {
+// TODO: Make more generic to support both popupbuttons
+function clearVerticalPositionPopupButtonState() {
     let threadDictionary = NSThread.mainThread().threadDictionary()
     let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
     verticalPositionPopupButton.itemWithTitle('Default Position').setState(NSControlStateValueOff)
@@ -992,6 +1138,14 @@ function clearPopupButtonState() {
     verticalPositionPopupButton.itemWithTitle('Subscript').setState(NSControlStateValueOff)
     verticalPositionPopupButton.itemWithTitle('Ordinals').setState(NSControlStateValueOff)
     verticalPositionPopupButton.itemWithTitle('Scientific Notation').setState(NSControlStateValueOff)
+}
+
+function clearSFSymbolSizePopupButton() {
+    let threadDictionary = NSThread.mainThread().threadDictionary()
+    let sfSymbolSizePopupButton = threadDictionary[sfSymbolSizePopupButtonID]
+    sfSymbolSizePopupButton.itemWithTitle('Small').setState(NSControlStateValueOff)
+    sfSymbolSizePopupButton.itemWithTitle('Medium').setState(NSControlStateValueOff)
+    sfSymbolSizePopupButton.itemWithTitle('Large').setState(NSControlStateValueOff)
 }
 
 function logWarning(warning) {
@@ -1057,4 +1211,45 @@ function getFontsFromTextLayer(textLayer, useFullSelection = false) {
         fonts.push({"font": font, "range": effectiveRange.value()})
     }
     return fonts
+}
+
+function checkToShowSFSymbolOption(font) {
+    let familyName = font.familyName()
+    let showSFSymbolOption = false
+
+    let supportedFontFamilies = [
+        "SF Pro Text",
+        "SF Pro Rounded",
+        "SF Pro Display",
+        "SF Compact Text",
+        "SF Compact Rounded",
+        "SF Compact Display"
+    ]
+
+    let threadDictionary = NSThread.mainThread().threadDictionary()
+    let row5 = threadDictionary[sfSymbolSizeRow]
+    let panel = threadDictionary[panelID]
+    let panelX = panel.frame().origin.x
+    let panelY = panel.frame().origin.y
+    let panelWidth = panel.frame().size.height
+    let panelHeight = panel.frame().size.height
+    supportedFontFamilies.forEach(fontFamily => {
+        if (familyName == fontFamily) {
+            showSFSymbolOption = true
+            // TODO Don't hard code these values
+            if (panelHeight != 235) {
+                panel.setFrame_display_animate(NSMakeRect(panelX, panelY - 25, 312, 210 + 25), true, true)
+                row5.setHidden(false)
+            }
+            return;
+        }
+    })
+
+    if (!showSFSymbolOption) {
+        // hide UI
+        if (panelHeight != 210) {
+            row5.setHidden(true)
+            panel.setFrame_display_animate(NSMakeRect(panelX, panelY + 25, 312, 210), true, true)
+        }
+    }
 }
