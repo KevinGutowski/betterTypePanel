@@ -721,6 +721,7 @@ function updateUI(useFullSelection = false) {
     textLayers.forEach(textLayer => {
         if (textLayer.sketchObject.isEditingText() == 1) {
             let fonts = getFontsFromTextLayer(textLayer, useFullSelection)
+
             fonts.forEach(fontForRange => {
                 let font = fontForRange.font
                 checkToShowSFSymbolOption(font)
@@ -729,7 +730,8 @@ function updateUI(useFullSelection = false) {
             })
         } else {
             let fonts = getFontsFromTextLayer(textLayer)
-            fonts.forEach((fontForRange, index) => {
+
+            fonts.forEach(fontForRange => {
                 let font = fontForRange.font
                 checkToShowSFSymbolOption(font)
                  let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
@@ -933,6 +935,27 @@ function updateUI(useFullSelection = false) {
             logWarning(updatedUISettings[uiSetting])
         }
     }
+
+    let fontCollection = []
+    textLayers.forEach(textLayer => {
+        let useFullSelection = true
+        if (textLayer.sketchObject.isEditingText() == 1) {
+            let fonts = getFontsFromTextLayer(textLayer)
+
+            fonts.forEach(font => {
+                fontCollection.push(font.font)
+            })
+        } else {
+            let fonts = getFontsFromTextLayer(textLayer, useFullSelection)
+            fonts.forEach(font => {
+                fontCollection.push(font.font)
+            })
+        }
+    })
+
+    // Disable UI options depending on fonts found
+    console.log("fontCollection", fontCollection)
+    checkFontsForProps(fontCollection)
 }
 
 function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
@@ -1076,29 +1099,43 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
     return settingsCollection
 }
 
-function disableUI(threadDictionary) {
+function disableUI(threadDictionary, optionsToDisableArray = ['all']) {
+    // optionsToDisable is an array that can include "all", "verticalPosition", "numberSpacing", "numberCase", "smallCapsUppercase", "smallCapsLowerCase", "sfSymbolSize"
     //TODO: Maybe reset the state to the deault params when UI is disabled
-    let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
-    verticalPositionPopupButton.setEnabled(false)
 
-    let radioButtonProportional = threadDictionary[radioButtonProportionalID]
-    let radioButtonMonospacedOrTabular = threadDictionary[radioButtonMonospacedOrTabularID]
-    radioButtonProportional.setEnabled(false)
-    radioButtonMonospacedOrTabular.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('verticalPosition')) {
+        let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
+        verticalPositionPopupButton.setEnabled(false)
+    }
 
-    let radioButtonLiningFigures = threadDictionary[radioButtonLiningFiguresID]
-    let radioButtonOldStyleFigures = threadDictionary[radioButtonOldStyleFiguresID]
-    radioButtonLiningFigures.setEnabled(false)
-    radioButtonOldStyleFigures.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('numberSpacing')) {
+        let radioButtonProportional = threadDictionary[radioButtonProportionalID]
+        let radioButtonMonospacedOrTabular = threadDictionary[radioButtonMonospacedOrTabularID]
+        radioButtonProportional.setEnabled(false)
+        radioButtonMonospacedOrTabular.setEnabled(false)
+    }
 
-    let pushOnOffButtonUpperCase = threadDictionary[pushOnOffButtonUpperCaseID]
-    pushOnOffButtonUpperCase.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('numberCase')) {
+        let radioButtonLiningFigures = threadDictionary[radioButtonLiningFiguresID]
+        let radioButtonOldStyleFigures = threadDictionary[radioButtonOldStyleFiguresID]
+        radioButtonLiningFigures.setEnabled(false)
+        radioButtonOldStyleFigures.setEnabled(false)
+    }
 
-    let pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID]
-    pushOnOffButtonLowerCase.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('smallCapsUpperCase')) {
+        let pushOnOffButtonUpperCase = threadDictionary[pushOnOffButtonUpperCaseID]
+        pushOnOffButtonUpperCase.setEnabled(false)
+    }
 
-    let sfSymbolSizePopupButton = threadDictionary[sfSymbolSizePopupButtonID]
-    sfSymbolSizePopupButton.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('smallCapsLowerCase')) {
+        let pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID]
+        pushOnOffButtonLowerCase.setEnabled(false)
+    }
+
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('sfSymbolSize')) {
+        let sfSymbolSizePopupButton = threadDictionary[sfSymbolSizePopupButtonID]
+        sfSymbolSizePopupButton.setEnabled(false)
+    }
 }
 
 function closePanel(panel, threadDictionary, threadIdentifier) {
@@ -1252,4 +1289,100 @@ function checkToShowSFSymbolOption(font) {
             panel.setFrame_display_animate(NSMakeRect(panelX, panelY + 25, 312, 210), true, true)
         }
     }
+}
+
+function checkFontsForProps(fonts) {
+    let threadDictionary = NSThread.mainThread().threadDictionary()
+    let optionsToDisableFromFonts = getOptionsToDisableFromFonts(fonts)
+
+    // In order for an option to be disabled, every font in the selection must not have that feature
+    // If at least one of the fonts has the supported font feature then we don't disable the corresponding UI component
+    // This is under the assumption that applying font features to fonts that don't support them don't do anything
+    // This wont be true when supporting stylistic sets :(
+    //
+    // look at the first set of font options and see if each of them exist in the other fonts
+    let settingsToDisable = []
+
+    if (optionsToDisableFromFonts.length == 1) {
+        settingsToDisable = optionsToDisableFromFonts[0]
+    } else {
+        optionsToDisableFromFonts[0].forEach(fontOption => {
+            let shouldDisableFontOption = true
+            for (let i = 1; i < optionsToDisableFromFonts.length; i++) {
+                if (!optionsToDisableFromFonts[i].includes(fontOption)) {
+                    shouldDisableFontOption = false
+                    return
+                }
+            }
+
+            if (shouldDisableFontOption) {
+                settingsToDisable.push(fontOption)
+            }
+        })
+    }
+
+    console.log("settingsToDisable", settingsToDisable)
+    if (settingsToDisable.length > 0) {
+        disableUI(threadDictionary, settingsToDisable)
+    }
+}
+
+function getOptionsToDisableFromFonts(fonts) {
+    framework('CoreText')
+    let main = HSMain.alloc().init()
+    let optionsToDisableForEachFont = []
+
+    fonts.forEach(font => {
+        const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null)
+        const features = CTFontCopyFeatures(coreTextFont)
+
+        let featuresArray = main.bridgeArray(features)
+        console.log("featuresArray", featuresArray)
+
+        let optionsToDisableForFont = getOptionsToDisableFromFeaturesArray(featuresArray)
+
+        optionsToDisableForEachFont.push(optionsToDisableForFont)
+    })
+
+    console.log("optionsToDisableForEachFont", optionsToDisableForEachFont)
+
+    return optionsToDisableForEachFont
+}
+
+function getOptionsToDisableFromFeaturesArray(featuresArray) {
+    let optionsToDisableForFont = []
+
+    if(!featuresArray) {
+        optionsToDisableForFont.push('verticalPosition','numberSpacing','numberCase', 'smallCapsLowerCase', 'smallCapsUpperCase')
+    } else {
+        let featureIDs = []
+        featuresArray.forEach(feature => {
+            featureIDs.push(Number(feature["CTFeatureTypeIdentifier"]))
+        })
+        console.log("featureIDs", featureIDs)
+
+        if (!featureIDs.includes(10)) {
+            // Vertical Position
+            optionsToDisableForFont.push('verticalPosition')
+        }
+        if (!featureIDs.includes(6)) {
+            // Number Spacing
+            optionsToDisableForFont.push('numberSpacing')
+        }
+        if (!featureIDs.includes(21)) {
+            // Number Case
+            optionsToDisableForFont.push('numberCase')
+        }
+        if (!featureIDs.includes(37)) {
+            // Small Caps Lower Case
+            optionsToDisableForFont.push('smallCapsLowerCase')
+        }
+        if (!featureIDs.includes(38)) {
+            // Small Caps Upper Case
+            optionsToDisableForFont.push('smallCapsUpperCase')
+        }
+    }
+
+    console.log("optionsToDisableForFont", optionsToDisableForFont)
+    return optionsToDisableForFont
 }

@@ -722,7 +722,7 @@ function updateUI() {
     } else {
       var _fonts = getFontsFromTextLayer(textLayer);
 
-      _fonts.forEach(function (fontForRange, index) {
+      _fonts.forEach(function (fontForRange) {
         var font = fontForRange.font;
         checkToShowSFSymbolOption(font);
         var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
@@ -924,6 +924,27 @@ function updateUI() {
       logWarning(updatedUISettings[uiSetting]);
     }
   }
+
+  var fontCollection = [];
+  textLayers.forEach(function (textLayer) {
+    var useFullSelection = true;
+
+    if (textLayer.sketchObject.isEditingText() == 1) {
+      var fonts = getFontsFromTextLayer(textLayer);
+      fonts.forEach(function (font) {
+        fontCollection.push(font.font);
+      });
+    } else {
+      var _fonts2 = getFontsFromTextLayer(textLayer, useFullSelection);
+
+      _fonts2.forEach(function (font) {
+        fontCollection.push(font.font);
+      });
+    }
+  }); // Disable UI options depending on fonts found
+
+  console.log("fontCollection", fontCollection);
+  checkFontsForProps(fontCollection);
 }
 
 function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
@@ -1070,23 +1091,44 @@ function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
 }
 
 function disableUI(threadDictionary) {
+  var optionsToDisableArray = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ['all'];
+
+  // optionsToDisable is an array that can include "all", "verticalPosition", "numberSpacing", "numberCase", "smallCapsUppercase", "smallCapsLowerCase", "sfSymbolSize"
   //TODO: Maybe reset the state to the deault params when UI is disabled
-  var verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID];
-  verticalPositionPopupButton.setEnabled(false);
-  var radioButtonProportional = threadDictionary[radioButtonProportionalID];
-  var radioButtonMonospacedOrTabular = threadDictionary[radioButtonMonospacedOrTabularID];
-  radioButtonProportional.setEnabled(false);
-  radioButtonMonospacedOrTabular.setEnabled(false);
-  var radioButtonLiningFigures = threadDictionary[radioButtonLiningFiguresID];
-  var radioButtonOldStyleFigures = threadDictionary[radioButtonOldStyleFiguresID];
-  radioButtonLiningFigures.setEnabled(false);
-  radioButtonOldStyleFigures.setEnabled(false);
-  var pushOnOffButtonUpperCase = threadDictionary[pushOnOffButtonUpperCaseID];
-  pushOnOffButtonUpperCase.setEnabled(false);
-  var pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID];
-  pushOnOffButtonLowerCase.setEnabled(false);
-  var sfSymbolSizePopupButton = threadDictionary[sfSymbolSizePopupButtonID];
-  sfSymbolSizePopupButton.setEnabled(false);
+  if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('verticalPosition')) {
+    var _verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID];
+
+    _verticalPositionPopupButton.setEnabled(false);
+  }
+
+  if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('numberSpacing')) {
+    var radioButtonProportional = threadDictionary[radioButtonProportionalID];
+    var radioButtonMonospacedOrTabular = threadDictionary[radioButtonMonospacedOrTabularID];
+    radioButtonProportional.setEnabled(false);
+    radioButtonMonospacedOrTabular.setEnabled(false);
+  }
+
+  if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('numberCase')) {
+    var radioButtonLiningFigures = threadDictionary[radioButtonLiningFiguresID];
+    var radioButtonOldStyleFigures = threadDictionary[radioButtonOldStyleFiguresID];
+    radioButtonLiningFigures.setEnabled(false);
+    radioButtonOldStyleFigures.setEnabled(false);
+  }
+
+  if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('smallCapsUpperCase')) {
+    var pushOnOffButtonUpperCase = threadDictionary[pushOnOffButtonUpperCaseID];
+    pushOnOffButtonUpperCase.setEnabled(false);
+  }
+
+  if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('smallCapsLowerCase')) {
+    var pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID];
+    pushOnOffButtonLowerCase.setEnabled(false);
+  }
+
+  if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('sfSymbolSize')) {
+    var sfSymbolSizePopupButton = threadDictionary[sfSymbolSizePopupButtonID];
+    sfSymbolSizePopupButton.setEnabled(false);
+  }
 }
 
 function closePanel(panel, threadDictionary, threadIdentifier) {
@@ -1214,6 +1256,8 @@ function checkToShowSFSymbolOption(font) {
         panel.setFrame_display_animate(NSMakeRect(panelX, panelY - 25, 312, 210 + 25), true, true);
         row5.setHidden(false);
       }
+
+      return;
     }
   });
 
@@ -1224,6 +1268,101 @@ function checkToShowSFSymbolOption(font) {
       panel.setFrame_display_animate(NSMakeRect(panelX, panelY + 25, 312, 210), true, true);
     }
   }
+}
+
+function checkFontsForProps(fonts) {
+  var threadDictionary = NSThread.mainThread().threadDictionary();
+  var optionsToDisableFromFonts = getOptionsToDisableFromFonts(fonts); // In order for an option to be disabled, every font in the selection must not have that feature
+  // If at least one of the fonts has the supported font feature then we don't disable the corresponding UI component
+  // This is under the assumption that applying font features to fonts that don't support them don't do anything
+  // This wont be true when supporting stylistic sets :(
+  //
+  // look at the first set of font options and see if each of them exist in the other fonts
+
+  var settingsToDisable = [];
+
+  if (optionsToDisableFromFonts.length == 1) {
+    settingsToDisable = optionsToDisableFromFonts[0];
+  } else {
+    optionsToDisableFromFonts[0].forEach(function (fontOption) {
+      var shouldDisableFontOption = true;
+
+      for (var i = 1; i < optionsToDisableFromFonts.length; i++) {
+        if (!optionsToDisableFromFonts[i].includes(fontOption)) {
+          shouldDisableFontOption = false;
+          return;
+        }
+      }
+
+      if (shouldDisableFontOption) {
+        settingsToDisable.push(fontOption);
+      }
+    });
+  }
+
+  console.log("settingsToDisable", settingsToDisable);
+
+  if (settingsToDisable.length > 0) {
+    disableUI(threadDictionary, settingsToDisable);
+  }
+}
+
+function getOptionsToDisableFromFonts(fonts) {
+  framework('CoreText');
+  var main = HSMain.alloc().init();
+  var optionsToDisableForEachFont = [];
+  fonts.forEach(function (font) {
+    var coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null);
+    var features = CTFontCopyFeatures(coreTextFont);
+    var featuresArray = main.bridgeArray(features);
+    console.log("featuresArray", featuresArray);
+    var optionsToDisableForFont = getOptionsToDisableFromFeaturesArray(featuresArray);
+    optionsToDisableForEachFont.push(optionsToDisableForFont);
+  });
+  console.log("optionsToDisableForEachFont", optionsToDisableForEachFont);
+  return optionsToDisableForEachFont;
+}
+
+function getOptionsToDisableFromFeaturesArray(featuresArray) {
+  var optionsToDisableForFont = [];
+
+  if (!featuresArray) {
+    optionsToDisableForFont.push('verticalPosition', 'numberSpacing', 'numberCase', 'smallCapsLowerCase', 'smallCapsUpperCase');
+  } else {
+    var featureIDs = [];
+    featuresArray.forEach(function (feature) {
+      featureIDs.push(Number(feature["CTFeatureTypeIdentifier"]));
+    });
+    console.log("featureIDs", featureIDs);
+
+    if (!featureIDs.includes(10)) {
+      // Vertical Position
+      optionsToDisableForFont.push('verticalPosition');
+    }
+
+    if (!featureIDs.includes(6)) {
+      // Number Spacing
+      optionsToDisableForFont.push('numberSpacing');
+    }
+
+    if (!featureIDs.includes(21)) {
+      // Number Case
+      optionsToDisableForFont.push('numberCase');
+    }
+
+    if (!featureIDs.includes(37)) {
+      // Small Caps Lower Case
+      optionsToDisableForFont.push('smallCapsLowerCase');
+    }
+
+    if (!featureIDs.includes(38)) {
+      // Small Caps Upper Case
+      optionsToDisableForFont.push('smallCapsUpperCase');
+    }
+  }
+
+  console.log("optionsToDisableForFont", optionsToDisableForFont);
+  return optionsToDisableForFont;
 }
 
 /***/ }),
