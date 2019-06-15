@@ -1241,6 +1241,7 @@ function checkToShowSFSymbolOption(font) {
                 panel.setFrame_display_animate(NSMakeRect(panelX, panelY - 25, 312, 210 + 25), true, true)
                 row5.setHidden(false)
             }
+            return;
         }
     })
 
