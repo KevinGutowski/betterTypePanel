@@ -710,59 +710,48 @@ function updateUI() {
   }
 
   var textLayersFeatureSettings = [];
+  var fontSettingsObjects = [];
   textLayers.forEach(function (textLayer) {
-    if (textLayer.sketchObject.isEditingText() == 1) {
-      var fonts = getFontsFromTextLayer(textLayer, useFullSelection);
-      fonts.forEach(function (font) {
-        var disableOptions = getOptionsToDisableFromFont(font); //checkToShowSFSymbolOption(font)
-        //let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
-        //textLayersFeatureSettings.push(fontFeatureSettings)
-      });
-    } else {
-      var _fonts = getFontsFromTextLayer(textLayer);
+    var fonts = getFontsFromTextLayer(textLayer, useFullSelection);
+    fonts.forEach(function (font) {
+      checkToShowSFSymbolOption(font);
+      var currentSettings = getSettingsForFont(font);
+      fontSettingsObjects.push(currentSettings);
+    });
+  }); // Settings object looks like this
+  //{
+  //    smallCapsLowerCase: true
+  //     smallCapsUpperCase: false
+  //     sfSymbolSize: 'medium'
+  //     numberCase: 'disabled'
+  //     verticalPosition: 'default'
+  //     numberSpacing: 'proportional'
+  // }
 
-      _fonts.forEach(function (font) {
-        checkToShowSFSymbolOption(font);
-        var currentSettings = getSettingsForFont(font);
-        console.log(currentSettings); //textLayersFeatureSettings.push(fontFeatureSettings)
-      });
-    }
-  }); // Update uiSettings array
-  // need to do this because fontFeatureSettings only has
-  // settings for applied options (doesn't contain state for all options)
+  var updatedUISettings = {
+    "smallCapsLowerCase": [],
+    "smallCapsUpperCase": [],
+    "sfSymbolSize": [],
+    "numberCase": [],
+    "verticalPosition": [],
+    "numberSpacing": []
+  };
+  fontSettingsObjects.forEach(function (fontSetting) {
+    Object.keys(fontSetting).forEach(function (key) {
+      updatedUISettings[key].push(fontSetting[key]);
+    });
+  });
+  console.log(updatedUISettings); // Deduplicate settingsCollection to only have unique entries
 
-  var updatedUISettings; // Check to see if the textLayersFeatureSettings is full of null entries
-
-  var isFeatureSettingsArrayAllNull = true;
-
-  for (var i = 0; i < textLayersFeatureSettings.length; i++) {
-    if (textLayersFeatureSettings[i] != null) {
-      isFeatureSettingsArrayAllNull = false;
-      break;
-    }
+  for (var property in updatedUISettings) {
+    updatedUISettings[property] = updatedUISettings[property].filter(onlyUnique);
   }
 
-  if (isFeatureSettingsArrayAllNull) {
-    // Bc the array is all null then just set the default UI settings
-    updatedUISettings = {
-      'verticalPosition': ['default'],
-      // 'default', 'superscript', 'subscript', 'ordinals', 'scientific inferiors'
-      'numberSpacing': ['proportional'],
-      // 'proportional', 'monospaced'
-      'numberCase': ['lining'],
-      // 'lining', 'oldStyle'
-      'smallCapsLowerCase': [false],
-      // bool
-      'smallCapsUpperCase': [false],
-      // bool
-      'sfSymbolSize': ['medium'] // 'small', 'medium', 'large'
+  function onlyUnique(value, index, self) {
+    return self.indexOf(value) === index;
+  }
 
-    };
-  } else {
-    // Get an updated list of settings from textLayerFeatureSettings array
-    updatedUISettings = modifyUISettings(textLayersFeatureSettings, getDefaultUISettings);
-  } //Update UI Panel with only one update (to prevent flickering)
-
+  console.log(updatedUISettings); //Update UI Panel with only one update (to prevent flickering)
 
   for (var uiSetting in updatedUISettings) {
     if (uiSetting == 'verticalPosition') {

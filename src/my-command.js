@@ -725,8 +725,7 @@ function updateUI(useFullSelection = false) {
         fonts.forEach(font => {
             checkToShowSFSymbolOption(font)
             let currentSettings = getSettingsForFont(font)
-            settingsObjects.push(currentSettings)
-            console.log(currentSettings)
+            fontSettingsObjects.push(currentSettings)
         })
     })
 
@@ -742,11 +741,30 @@ function updateUI(useFullSelection = false) {
     // }
 
     let updatedUISettings = {
-
+        "smallCapsLowerCase": [],
+        "smallCapsUpperCase": [],
+        "sfSymbolSize": [],
+        "numberCase": [],
+        "verticalPosition": [],
+        "numberSpacing": []
     }
     fontSettingsObjects.forEach(fontSetting => {
-
+        Object.keys(fontSetting).forEach(key => {
+            updatedUISettings[key].push(fontSetting[key])
+        })
     })
+    console.log(updatedUISettings)
+
+    // Deduplicate settingsCollection to only have unique entries
+    for (var property in updatedUISettings) {
+        updatedUISettings[property] = updatedUISettings[property].filter(onlyUnique)
+    }
+
+    function onlyUnique(value,index,self) {
+        return self.indexOf(value) === index
+    }
+
+    console.log(updatedUISettings)
 
     //Update UI Panel with only one update (to prevent flickering)
     for (var uiSetting in updatedUISettings) {
