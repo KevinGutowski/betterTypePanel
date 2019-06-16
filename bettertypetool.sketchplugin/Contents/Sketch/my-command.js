@@ -655,9 +655,9 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
       var textView = textLayer.sketchObject.editingDelegate().textView();
       var textStorage = textView.textStorage();
       var fonts = getFontsFromTextLayer(textLayer);
-      fonts.forEach(function (fontForRange) {
-        var font = fontForRange.font;
-        var range = fontForRange.range;
+      fonts.forEach(function (fontWithRange) {
+        var font = fontWithRange.font;
+        var range = fontWithRange.range;
         var fontSize = font.pointSize();
         var descriptor = font.fontDescriptor().fontDescriptorByAddingAttributes(settingsAttribute);
         var newFont = NSFont.fontWithDescriptor_size(descriptor, fontSize);
@@ -713,9 +713,9 @@ function updateUI() {
   var fontSettingsObjects = [];
   textLayers.forEach(function (textLayer) {
     var fonts = getFontsFromTextLayer(textLayer, useFullSelection);
-    fonts.forEach(function (font) {
-      checkToShowSFSymbolOption(font);
-      var currentSettings = getSettingsForFont(font);
+    fonts.forEach(function (fontWithRange) {
+      checkToShowSFSymbolOption(fontWithRange.font);
+      var currentSettings = getSettingsForFont(fontWithRange.font);
       fontSettingsObjects.push(currentSettings);
     });
   }); // Settings object looks like this
@@ -740,8 +740,7 @@ function updateUI() {
     Object.keys(fontSetting).forEach(function (key) {
       updatedUISettings[key].push(fontSetting[key]);
     });
-  });
-  console.log(updatedUISettings); // Deduplicate settingsCollection to only have unique entries
+  }); // Deduplicate settingsCollection to only have unique entries
 
   for (var property in updatedUISettings) {
     updatedUISettings[property] = updatedUISettings[property].filter(onlyUnique);
@@ -749,9 +748,8 @@ function updateUI() {
 
   function onlyUnique(value, index, self) {
     return self.indexOf(value) === index;
-  }
+  } //Update UI Panel with only one update (to prevent flickering)
 
-  console.log(updatedUISettings); //Update UI Panel with only one update (to prevent flickering)
 
   for (var uiSetting in updatedUISettings) {
     if (uiSetting == 'verticalPosition') {
@@ -797,6 +795,8 @@ function updateUI() {
             // console.log('Setting UI: Vertical Position = Scientific Notation')
             verticalPositionPopupButton.selectItemWithTitle('Scientific Notation');
             verticalPositionPopupButton.itemWithTitle('Scientific Notation').setState(NSControlStateValueOn);
+          } else if (updatedUISettings[uiSetting][0] == 'disabled') {
+            verticalPositionPopupButton.setEnabled(false);
           } else {
             logWarning('BetterTypeTool: ERROR Attempting update panel state - Out of scope of verticalPosition options');
           }
@@ -820,7 +820,13 @@ function updateUI() {
           // console.log('Setting UI: Number Spacing == Monospaced/Tabular')
           radioButtonProportional.setState(NSOffState);
           radioButtonMonospacedOrTabular.setState(NSOnState);
-        } else {// console.log('Error: Attempting update panel state - Out of scope of numberSpacing options')
+        } else if (updatedUISettings[uiSetting][0] == 'disabled') {
+          radioButtonProportional.setState(NSOffState);
+          radioButtonMonospacedOrTabular.setState(NSOffState);
+          radioButtonProportional.setEnabled(false);
+          radioButtonMonospacedOrTabular.setEnabled(false);
+        } else {
+          logWarning('BetterTypeTool: ERROR Attempting update panel state - Out of scope of numberSpacing options');
         }
       }
     } else if (uiSetting == 'numberCase') {
@@ -841,7 +847,13 @@ function updateUI() {
           // console.log('Setting UI: Number Case = Old-style figures')
           radioButtonLiningFigures.setState(NSOffState);
           radioButtonOldStyleFigures.setState(NSOnState);
-        } else {// console.log('Error: Attempting to update panel state - Out of scope of numberCase options')
+        } else if (updatedUISettings[uiSetting][0] == 'disabled') {
+          radioButtonLiningFigures.setState(NSOffState);
+          radioButtonOldStyleFigures.setState(NSOffState);
+          radioButtonLiningFigures.setEnabled(false);
+          radioButtonOldStyleFigures.setEnabled(false);
+        } else {
+          logWarning('BetterTypeTool: ERROR Attempting to update panel state - Out of scope of numberCase options');
         }
       }
     } else if (uiSetting == 'smallCapsUpperCase') {
@@ -857,6 +869,11 @@ function updateUI() {
         } else if (updatedUISettings[uiSetting][0] == true) {
           // console.log('Setting UI: Small Caps Upper Case = On')
           pushOnOffButtonUpperCase.setState(NSOnState);
+        } else if (updatedUISettings[uiSetting][0] == 'disabled') {
+          pushOnOffButtonUpperCase.setState(NSOffState);
+          pushOnOffButtonUpperCase.setEnabled(false);
+        } else {
+          logWarning('BetterTypeTool: ERROR Attempting to update panel state - Out of scope of smallCapsUpperCase options');
         }
       }
     } else if (uiSetting == 'smallCapsLowerCase') {
@@ -872,6 +889,11 @@ function updateUI() {
         } else if (updatedUISettings[uiSetting][0] == true) {
           // console.log('Setting UI: Small Caps Lower Case = On')
           pushOnOffButtonLowerCase.setState(NSOnState);
+        } else if (updatedUISettings[uiSetting][0] == 'disabled') {
+          pushOnOffButtonLowerCase.setState(NSOffState);
+          pushOnOffButtonLowerCase.setEnabled(false);
+        } else {
+          logWarning('BetterTypeTool: ERROR Attempting to update panel state - Out of scope of smallCapsLowerCase options');
         }
       }
     } else if (uiSetting == 'sfSymbolSize') {
@@ -888,7 +910,7 @@ function updateUI() {
             } else if (sfSymbolSizeSetting == 'medium') {
               sfSymbolSizePopupButton.itemWithTitle('Medium').setState(NSControlStateValueMixed);
             } else if (sfSymbolSizeSetting == 'large') {
-              verticalPositionPopupButton.itemWithTitle('Large').setState(NSControlStateValueMixed);
+              sfSymbolSizePopupButton.itemWithTitle('Large').setState(NSControlStateValueMixed);
             }
           });
         } else {
@@ -901,6 +923,8 @@ function updateUI() {
           } else if (updatedUISettings[uiSetting][0] == 'large') {
             sfSymbolSizePopupButton.selectItemWithTitle('Large');
             sfSymbolSizePopupButton.itemWithTitle('Large').setState(NSControlStateValueOn);
+          } else if (updatedUISettings[uiSetting][0] == 'disabled') {
+            sfSymbolSizePopupButton.setEnabled(false);
           } else {
             logWarning('BetterTypeTool: ERROR Attempting update panel state - Out of scope of sfSymbolSize options');
           }
@@ -1062,9 +1086,8 @@ function disableUI(threadDictionary) {
   // optionsToDisable is an array that can include "all", "verticalPosition", "numberSpacing", "numberCase", "smallCapsUppercase", "smallCapsLowerCase", "sfSymbolSize"
   //TODO: Maybe reset the state to the deault params when UI is disabled
   if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('verticalPosition')) {
-    var _verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID];
-
-    _verticalPositionPopupButton.setEnabled(false);
+    var verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID];
+    verticalPositionPopupButton.setEnabled(false);
   }
 
   if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('numberSpacing')) {
@@ -1195,7 +1218,10 @@ function getFontsFromTextLayer(textLayer) {
     var _font = mutableAttrString.attribute_atIndex_longestEffectiveRange_inRange(NSFontAttributeName, selectedRange.location, effectiveRange, selectedRange);
 
     selectedRange = NSMakeRange(NSMaxRange(effectiveRange.value()), NSMaxRange(selectedRange) - NSMaxRange(effectiveRange.value()));
-    fonts.push(_font);
+    fonts.push({
+      "font": _font,
+      "range": effectiveRange.value()
+    });
   }
 
   return fonts;
