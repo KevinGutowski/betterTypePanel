@@ -718,55 +718,35 @@ function updateUI(useFullSelection = false) {
     }
 
     var textLayersFeatureSettings = []
+
+    let fontSettingsObjects = []
     textLayers.forEach(textLayer => {
-        if (textLayer.sketchObject.isEditingText() == 1) {
-            let fonts = getFontsFromTextLayer(textLayer, useFullSelection)
-
-            fonts.forEach(fontForRange => {
-                let font = fontForRange.font
-                checkToShowSFSymbolOption(font)
-                let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
-                textLayersFeatureSettings.push(fontFeatureSettings)
-            })
-        } else {
-            let fonts = getFontsFromTextLayer(textLayer)
-
-            fonts.forEach(fontForRange => {
-                let font = fontForRange.font
-                checkToShowSFSymbolOption(font)
-                 let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
-                textLayersFeatureSettings.push(fontFeatureSettings)
-            })
-        }
+        let fonts = getFontsFromTextLayer(textLayer, useFullSelection)
+        fonts.forEach(font => {
+            checkToShowSFSymbolOption(font)
+            let currentSettings = getSettingsForFont(font)
+            settingsObjects.push(currentSettings)
+            console.log(currentSettings)
+        })
     })
 
-    // Update uiSettings array
-    // need to do this because fontFeatureSettings only has
-    // settings for applied options (doesn't contain state for all options)
-    var updatedUISettings
 
-    // Check to see if the textLayersFeatureSettings is full of null entries
-    var isFeatureSettingsArrayAllNull = true
-    for (let i = 0; i < textLayersFeatureSettings.length; i++) {
-        if (textLayersFeatureSettings[i] != null) {
-            isFeatureSettingsArrayAllNull = false
-            break
-        }
+    // Settings object looks like this
+    //{
+    //    smallCapsLowerCase: true
+    //     smallCapsUpperCase: false
+    //     sfSymbolSize: 'medium'
+    //     numberCase: 'disabled'
+    //     verticalPosition: 'default'
+    //     numberSpacing: 'proportional'
+    // }
+
+    let updatedUISettings = {
+
     }
-    if (isFeatureSettingsArrayAllNull) {
-        // Bc the array is all null then just set the default UI settings
-        updatedUISettings = {
-            'verticalPosition': ['default'], // 'default', 'superscript', 'subscript', 'ordinals', 'scientific inferiors'
-            'numberSpacing': ['proportional'], // 'proportional', 'monospaced'
-            'numberCase': ['lining'], // 'lining', 'oldStyle'
-            'smallCapsLowerCase': [false], // bool
-            'smallCapsUpperCase': [false], // bool
-            'sfSymbolSize': ['medium'] // 'small', 'medium', 'large'
-        }
-    } else {
-        // Get an updated list of settings from textLayerFeatureSettings array
-        updatedUISettings = modifyUISettings(textLayersFeatureSettings, getDefaultUISettings)
-    }
+    fontSettingsObjects.forEach(fontSetting => {
+
+    })
 
     //Update UI Panel with only one update (to prevent flickering)
     for (var uiSetting in updatedUISettings) {
@@ -935,27 +915,6 @@ function updateUI(useFullSelection = false) {
             logWarning(updatedUISettings[uiSetting])
         }
     }
-
-    let fontCollection = []
-    textLayers.forEach(textLayer => {
-        let useFullSelection = true
-        if (textLayer.sketchObject.isEditingText() == 1) {
-            let fonts = getFontsFromTextLayer(textLayer)
-
-            fonts.forEach(font => {
-                fontCollection.push(font.font)
-            })
-        } else {
-            let fonts = getFontsFromTextLayer(textLayer, useFullSelection)
-            fonts.forEach(font => {
-                fontCollection.push(font.font)
-            })
-        }
-    })
-
-    // Disable UI options depending on fonts found
-    console.log("fontCollection", fontCollection)
-    checkFontsForProps(fontCollection)
 }
 
 function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
@@ -1155,12 +1114,12 @@ function closePanel(panel, threadDictionary, threadIdentifier) {
     //Start with Default Settings
 function getDefaultUISettings() {
     return {
-        'verticalPosition': 'default', // 'default', 'superscript', 'subscript', 'ordinals', 'scientific inferiors'
-        'numberSpacing': 'proportional', // 'proportional', 'monospaced'
-        'numberCase': 'lining', // 'lining', 'oldStyle'
-        'smallCapsLowerCase': false, // bool
-        'smallCapsUpperCase': false, // bool
-        'sfSymbolSize': 'medium'
+        'verticalPosition': 'default', // 'default', 'superscript', 'subscript', 'ordinals', 'scientific inferiors', 'disabled'
+        'numberSpacing': 'proportional', // 'proportional', 'monospaced', 'disabled'
+        'numberCase': 'lining', // 'lining', 'oldStyle', 'disabled'
+        'smallCapsLowerCase': false, // bool, 'disabled'
+        'smallCapsUpperCase': false, // bool, 'disabled'
+        'sfSymbolSize': 'medium' // 'small', 'medium', 'large', 'disabled'
         // If updating this list remember to update the default updatedUISettings
         // TODO: Refactor so that the Default UI settings is in one place.
     }
@@ -1245,7 +1204,7 @@ function getFontsFromTextLayer(textLayer, useFullSelection = false) {
             NSMaxRange(selectedRange) - NSMaxRange(effectiveRange.value())
         )
 
-        fonts.push({"font": font, "range": effectiveRange.value()})
+        fonts.push(font)
     }
     return fonts
 }
@@ -1327,26 +1286,30 @@ function checkFontsForProps(fonts) {
     }
 }
 
-function getOptionsToDisableFromFonts(fonts) {
+function getOptionsToDisableFromFont(font) {
     framework('CoreText')
     let main = HSMain.alloc().init()
-    let optionsToDisableForEachFont = []
 
-    fonts.forEach(font => {
-        const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null)
-        const features = CTFontCopyFeatures(coreTextFont)
+    const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null)
+    const features = CTFontCopyFeatures(coreTextFont)
+    let featuresArray = main.bridgeArray(features)
 
-        let featuresArray = main.bridgeArray(features)
-        console.log("featuresArray", featuresArray)
+    let optionsToDisableForFont = getOptionsToDisableFromFeaturesArray(featuresArray)
 
-        let optionsToDisableForFont = getOptionsToDisableFromFeaturesArray(featuresArray)
+    let familyName = font.familyName().toLowerCase().trim()
+    let supportedFontFamilies = [
+        "sf pro text",
+        "sf pro rounded",
+        "sf pro display",
+        "sf compact text",
+        "sf compact rounded",
+        "sf compact display"
+    ]
+    if (!supportedFontFamilies.includes(familyName)) {
+        optionsToDisableForFont.push('sfSymbolSize')
+    }
 
-        optionsToDisableForEachFont.push(optionsToDisableForFont)
-    })
-
-    console.log("optionsToDisableForEachFont", optionsToDisableForEachFont)
-
-    return optionsToDisableForEachFont
+    return optionsToDisableForFont
 }
 
 function getOptionsToDisableFromFeaturesArray(featuresArray) {
@@ -1359,7 +1322,6 @@ function getOptionsToDisableFromFeaturesArray(featuresArray) {
         featuresArray.forEach(feature => {
             featureIDs.push(Number(feature["CTFeatureTypeIdentifier"]))
         })
-        console.log("featureIDs", featureIDs)
 
         if (!featureIDs.includes(10)) {
             // Vertical Position
@@ -1382,7 +1344,200 @@ function getOptionsToDisableFromFeaturesArray(featuresArray) {
             optionsToDisableForFont.push('smallCapsUpperCase')
         }
     }
-
-    console.log("optionsToDisableForFont", optionsToDisableForFont)
     return optionsToDisableForFont
+}
+
+function getSettingsForFont(font) {
+    let currentOptions = getDefaultUISettings()
+    let disableOptions = getOptionsToDisableFromFont(font)
+    disableOptions.forEach(option => {
+        switch (option) {
+            case "verticalPosition":
+                currentOptions.verticalPosition = "disabled"
+                break;
+            case "numberSpacing":
+                currentOptions.numberSpacing = "disabled"
+                break;
+            case "numberCase":
+                currentOptions.numberCase = "disabled"
+                break;
+            case "smallCapsLowerCase":
+                currentOptions.smallCapsLowerCase = "disabled"
+                break;
+            case "smallCapsUpperCase":
+                currentOptions.smallCapsUpperCase = "disabled"
+                break;
+            case "sfSymbolSize":
+                currentOptions.sfSymbolSize = "disabled"
+                break;
+        }
+    })
+
+    let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+    if (fontFeatureSettings) {
+        fontFeatureSettings.forEach(featureSetting => {
+            const featureTypeIdentifierKey = Number(featureSetting[NSFontFeatureTypeIdentifierKey])
+            const featureSelectorIdentifierKey = Number(featureSetting[NSFontFeatureSelectorIdentifierKey])
+
+            switch (featureTypeIdentifierKey) {
+                // kVerticalPosition
+                case 10:
+                    switch (featureSelectorIdentifierKey) {
+                        // kNormalPositionSelector
+                        case 0:
+                            currentOptions.verticalPosition = 'default'
+                            break;
+
+                        // kSuperiorsSelector
+                        case 1:
+                            currentOptions.verticalPosition = 'superscript'
+                            break;
+
+                        // kInferiorsSelector
+                        case 2:
+                            currentOptions.verticalPosition = 'subscript'
+                            break;
+
+                        // kOrdinalsSelector
+                        case 3:
+                            currentOptions.verticalPosition = 'ordinals'
+                            break;
+
+                        // kScientificInferiorsSelector
+                        case 4:
+                            currentOptions.verticalPosition = 'scientific inferiors'
+                            break;
+
+                        default:
+                            logWarning("BetterTypeTool: Unknown Feature for Vertical Position")
+                            break;
+                    }
+                    break;
+
+                // kNumberSpacing
+                case 6:
+                    switch(featureSelectorIdentifierKey) {
+                        // kMonospacedNumbersSelector
+                        case 0:
+                            currentOptions.numberSpacing = 'monospaced'
+                            break;
+
+                        // kProportionalNumbersSelector
+                        case 1:
+                            currentOptions.numberSpacing = 'proportional'
+                            break;
+
+                        // kThirdWidthNumbersSelector
+                        case 2:
+                            logWarning("BetterTypeTool: Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)")
+                            break;
+
+                        // kQuarterWidthNumbersSelector
+                        case 3:
+                            logWarning("BetterTypeTool: Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals")
+                            break;
+
+                        default:
+                            logWarning("BetterTypeTool: Unknown feature for Number Spacing")
+                            break;
+                    }
+                    break;
+
+                // kNumberCaseType
+                case 21:
+                    switch(featureSelectorIdentifierKey) {
+                        // kLowerCaseNumbersSelector
+                        case 0:
+                            currentOptions.numberCase = 'oldStyle'
+                            break;
+
+                        // kUpperCaseNumbersSelector
+                        case 1:
+                            currentOptions.numberCase = 'lining'
+                            break;
+
+                        default:
+                            logWarning("BetterTypeTool: Unknown feature for Number Case")
+                            break;
+                    }
+                    break;
+
+                // kLowerCase
+                case 37:
+                    switch(featureSelectorIdentifierKey) {
+                        // kDefaultLowerCaseSelector (aka OFF)
+                        case 0:
+                            currentOptions.smallCapsLowerCase = false
+                            break;
+
+                        // kLowerCaseSmallCapsSelector
+                        case 1:
+                            currentOptions.smallCapsLowerCase = true
+                            break;
+
+                        // kLowerCasePetiteCapsSelector
+                        case 2:
+                            logWarning("Unsupported Lower Case Small Caps Feature - Lower Case Petite Caps")
+                            break;
+
+                        default:
+                            logWarning("BetterTypeTool: Unknown feature for Lower Case Small Caps")
+                            break;
+                    }
+                    break;
+
+                // kUpperCase
+                case 38:
+                    switch(featureSelectorIdentifierKey) {
+                        // kDefaultUpperCaseSelector (aka OFF)
+                        case 0:
+                            currentOptions.smallCapsUpperCase = false
+                            break;
+
+                        // kUpperCaseSmallCapsSelector
+                        case 1:
+                            currentOptions.smallCapsUpperCase = true
+                            break;
+
+                        // kUpperCasePetiteCapsSelector
+                        case 2:
+                            logWarning("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps")
+                            break;
+
+                        default:
+                            logWarning("BetterTypeTool: Unknown feature for Upper Case Small Caps")
+                            break;
+                    }
+                    break;
+
+
+                // kStylisticAlternatives
+                case 35:
+                    switch(featureSelectorIdentifierKey) {
+                        // kStylisticAltFifteenOnSelector
+                        case 30:
+                            currentOptions.sfSymbolSize = 'small'
+                            break;
+
+                        // kStylisticAltFifteenOffSelector
+                        case 31:
+                            logWarning("WARNING: Unhandled Attempt to Set 15th Stylistic Alternative off")
+                            break;
+
+                        // kStylisticAltSixteenOnSelector
+                        case 32:
+                            currentOptions.sfSymbolSize = 'large'
+                            break;
+
+                        // kStylisticAltSixteenOffSelector
+                        case 33:
+                            logWarning("WARNING: Unhandled Attempt to Set 16th Stylistic Alternative off")
+                            break;
+                    }
+                    break;
+            }
+        })
+    }
+
+    return currentOptions
 }

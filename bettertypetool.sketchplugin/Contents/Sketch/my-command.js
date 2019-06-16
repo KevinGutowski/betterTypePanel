@@ -713,20 +713,18 @@ function updateUI() {
   textLayers.forEach(function (textLayer) {
     if (textLayer.sketchObject.isEditingText() == 1) {
       var fonts = getFontsFromTextLayer(textLayer, useFullSelection);
-      fonts.forEach(function (fontForRange) {
-        var font = fontForRange.font;
-        checkToShowSFSymbolOption(font);
-        var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
-        textLayersFeatureSettings.push(fontFeatureSettings);
+      fonts.forEach(function (font) {
+        var disableOptions = getOptionsToDisableFromFont(font); //checkToShowSFSymbolOption(font)
+        //let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+        //textLayersFeatureSettings.push(fontFeatureSettings)
       });
     } else {
       var _fonts = getFontsFromTextLayer(textLayer);
 
-      _fonts.forEach(function (fontForRange) {
-        var font = fontForRange.font;
+      _fonts.forEach(function (font) {
         checkToShowSFSymbolOption(font);
-        var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
-        textLayersFeatureSettings.push(fontFeatureSettings);
+        var currentSettings = getSettingsForFont(font);
+        console.log(currentSettings); //textLayersFeatureSettings.push(fontFeatureSettings)
       });
     }
   }); // Update uiSettings array
@@ -924,27 +922,6 @@ function updateUI() {
       logWarning(updatedUISettings[uiSetting]);
     }
   }
-
-  var fontCollection = [];
-  textLayers.forEach(function (textLayer) {
-    var useFullSelection = true;
-
-    if (textLayer.sketchObject.isEditingText() == 1) {
-      var fonts = getFontsFromTextLayer(textLayer);
-      fonts.forEach(function (font) {
-        fontCollection.push(font.font);
-      });
-    } else {
-      var _fonts2 = getFontsFromTextLayer(textLayer, useFullSelection);
-
-      _fonts2.forEach(function (font) {
-        fontCollection.push(font.font);
-      });
-    }
-  }); // Disable UI options depending on fonts found
-
-  console.log("fontCollection", fontCollection);
-  checkFontsForProps(fontCollection);
 }
 
 function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
@@ -1146,16 +1123,17 @@ function closePanel(panel, threadDictionary, threadIdentifier) {
 function getDefaultUISettings() {
   return {
     'verticalPosition': 'default',
-    // 'default', 'superscript', 'subscript', 'ordinals', 'scientific inferiors'
+    // 'default', 'superscript', 'subscript', 'ordinals', 'scientific inferiors', 'disabled'
     'numberSpacing': 'proportional',
-    // 'proportional', 'monospaced'
+    // 'proportional', 'monospaced', 'disabled'
     'numberCase': 'lining',
-    // 'lining', 'oldStyle'
+    // 'lining', 'oldStyle', 'disabled'
     'smallCapsLowerCase': false,
-    // bool
+    // bool, 'disabled'
     'smallCapsUpperCase': false,
-    // bool
-    'sfSymbolSize': 'medium' // If updating this list remember to update the default updatedUISettings
+    // bool, 'disabled'
+    'sfSymbolSize': 'medium' // 'small', 'medium', 'large', 'disabled'
+    // If updating this list remember to update the default updatedUISettings
     // TODO: Refactor so that the Default UI settings is in one place.
 
   };
@@ -1228,10 +1206,7 @@ function getFontsFromTextLayer(textLayer) {
     var _font = mutableAttrString.attribute_atIndex_longestEffectiveRange_inRange(NSFontAttributeName, selectedRange.location, effectiveRange, selectedRange);
 
     selectedRange = NSMakeRange(NSMaxRange(effectiveRange.value()), NSMaxRange(selectedRange) - NSMaxRange(effectiveRange.value()));
-    fonts.push({
-      "font": _font,
-      "range": effectiveRange.value()
-    });
+    fonts.push(_font);
   }
 
   return fonts;
@@ -1307,20 +1282,21 @@ function checkFontsForProps(fonts) {
   }
 }
 
-function getOptionsToDisableFromFonts(fonts) {
+function getOptionsToDisableFromFont(font) {
   framework('CoreText');
   var main = HSMain.alloc().init();
-  var optionsToDisableForEachFont = [];
-  fonts.forEach(function (font) {
-    var coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null);
-    var features = CTFontCopyFeatures(coreTextFont);
-    var featuresArray = main.bridgeArray(features);
-    console.log("featuresArray", featuresArray);
-    var optionsToDisableForFont = getOptionsToDisableFromFeaturesArray(featuresArray);
-    optionsToDisableForEachFont.push(optionsToDisableForFont);
-  });
-  console.log("optionsToDisableForEachFont", optionsToDisableForEachFont);
-  return optionsToDisableForEachFont;
+  var coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null);
+  var features = CTFontCopyFeatures(coreTextFont);
+  var featuresArray = main.bridgeArray(features);
+  var optionsToDisableForFont = getOptionsToDisableFromFeaturesArray(featuresArray);
+  var familyName = font.familyName().toLowerCase().trim();
+  var supportedFontFamilies = ["sf pro text", "sf pro rounded", "sf pro display", "sf compact text", "sf compact rounded", "sf compact display"];
+
+  if (!supportedFontFamilies.includes(familyName)) {
+    optionsToDisableForFont.push('sfSymbolSize');
+  }
+
+  return optionsToDisableForFont;
 }
 
 function getOptionsToDisableFromFeaturesArray(featuresArray) {
@@ -1333,7 +1309,6 @@ function getOptionsToDisableFromFeaturesArray(featuresArray) {
     featuresArray.forEach(function (feature) {
       featureIDs.push(Number(feature["CTFeatureTypeIdentifier"]));
     });
-    console.log("featureIDs", featureIDs);
 
     if (!featureIDs.includes(10)) {
       // Vertical Position
@@ -1361,8 +1336,212 @@ function getOptionsToDisableFromFeaturesArray(featuresArray) {
     }
   }
 
-  console.log("optionsToDisableForFont", optionsToDisableForFont);
   return optionsToDisableForFont;
+}
+
+function getSettingsForFont(font) {
+  var currentOptions = getDefaultUISettings();
+  var disableOptions = getOptionsToDisableFromFont(font);
+  disableOptions.forEach(function (option) {
+    switch (option) {
+      case "verticalPosition":
+        currentOptions.verticalPosition = "disabled";
+        break;
+
+      case "numberSpacing":
+        currentOptions.numberSpacing = "disabled";
+        break;
+
+      case "numberCase":
+        currentOptions.numberCase = "disabled";
+        break;
+
+      case "smallCapsLowerCase":
+        currentOptions.smallCapsLowerCase = "disabled";
+        break;
+
+      case "smallCapsUpperCase":
+        currentOptions.smallCapsUpperCase = "disabled";
+        break;
+
+      case "sfSymbolSize":
+        currentOptions.sfSymbolSize = "disabled";
+        break;
+    }
+  });
+  var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
+
+  if (fontFeatureSettings) {
+    fontFeatureSettings.forEach(function (featureSetting) {
+      var featureTypeIdentifierKey = Number(featureSetting[NSFontFeatureTypeIdentifierKey]);
+      var featureSelectorIdentifierKey = Number(featureSetting[NSFontFeatureSelectorIdentifierKey]);
+
+      switch (featureTypeIdentifierKey) {
+        // kVerticalPosition
+        case 10:
+          switch (featureSelectorIdentifierKey) {
+            // kNormalPositionSelector
+            case 0:
+              currentOptions.verticalPosition = 'default';
+              break;
+            // kSuperiorsSelector
+
+            case 1:
+              currentOptions.verticalPosition = 'superscript';
+              break;
+            // kInferiorsSelector
+
+            case 2:
+              currentOptions.verticalPosition = 'subscript';
+              break;
+            // kOrdinalsSelector
+
+            case 3:
+              currentOptions.verticalPosition = 'ordinals';
+              break;
+            // kScientificInferiorsSelector
+
+            case 4:
+              currentOptions.verticalPosition = 'scientific inferiors';
+              break;
+
+            default:
+              logWarning("BetterTypeTool: Unknown Feature for Vertical Position");
+              break;
+          }
+
+          break;
+        // kNumberSpacing
+
+        case 6:
+          switch (featureSelectorIdentifierKey) {
+            // kMonospacedNumbersSelector
+            case 0:
+              currentOptions.numberSpacing = 'monospaced';
+              break;
+            // kProportionalNumbersSelector
+
+            case 1:
+              currentOptions.numberSpacing = 'proportional';
+              break;
+            // kThirdWidthNumbersSelector
+
+            case 2:
+              logWarning("BetterTypeTool: Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)");
+              break;
+            // kQuarterWidthNumbersSelector
+
+            case 3:
+              logWarning("BetterTypeTool: Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals");
+              break;
+
+            default:
+              logWarning("BetterTypeTool: Unknown feature for Number Spacing");
+              break;
+          }
+
+          break;
+        // kNumberCaseType
+
+        case 21:
+          switch (featureSelectorIdentifierKey) {
+            // kLowerCaseNumbersSelector
+            case 0:
+              currentOptions.numberCase = 'oldStyle';
+              break;
+            // kUpperCaseNumbersSelector
+
+            case 1:
+              currentOptions.numberCase = 'lining';
+              break;
+
+            default:
+              logWarning("BetterTypeTool: Unknown feature for Number Case");
+              break;
+          }
+
+          break;
+        // kLowerCase
+
+        case 37:
+          switch (featureSelectorIdentifierKey) {
+            // kDefaultLowerCaseSelector (aka OFF)
+            case 0:
+              currentOptions.smallCapsLowerCase = false;
+              break;
+            // kLowerCaseSmallCapsSelector
+
+            case 1:
+              currentOptions.smallCapsLowerCase = true;
+              break;
+            // kLowerCasePetiteCapsSelector
+
+            case 2:
+              logWarning("Unsupported Lower Case Small Caps Feature - Lower Case Petite Caps");
+              break;
+
+            default:
+              logWarning("BetterTypeTool: Unknown feature for Lower Case Small Caps");
+              break;
+          }
+
+          break;
+        // kUpperCase
+
+        case 38:
+          switch (featureSelectorIdentifierKey) {
+            // kDefaultUpperCaseSelector (aka OFF)
+            case 0:
+              currentOptions.smallCapsUpperCase = false;
+              break;
+            // kUpperCaseSmallCapsSelector
+
+            case 1:
+              currentOptions.smallCapsUpperCase = true;
+              break;
+            // kUpperCasePetiteCapsSelector
+
+            case 2:
+              logWarning("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps");
+              break;
+
+            default:
+              logWarning("BetterTypeTool: Unknown feature for Upper Case Small Caps");
+              break;
+          }
+
+          break;
+        // kStylisticAlternatives
+
+        case 35:
+          switch (featureSelectorIdentifierKey) {
+            // kStylisticAltFifteenOnSelector
+            case 30:
+              currentOptions.sfSymbolSize = 'small';
+              break;
+            // kStylisticAltFifteenOffSelector
+
+            case 31:
+              logWarning("WARNING: Unhandled Attempt to Set 15th Stylistic Alternative off");
+              break;
+            // kStylisticAltSixteenOnSelector
+
+            case 32:
+              currentOptions.sfSymbolSize = 'large';
+              break;
+            // kStylisticAltSixteenOffSelector
+
+            case 33:
+              logWarning("WARNING: Unhandled Attempt to Set 16th Stylistic Alternative off");
+              break;
+          }
+
+          break;
+      }
+    });
+  }
+
+  return currentOptions;
 }
 
 /***/ }),
