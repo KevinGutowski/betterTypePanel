@@ -623,38 +623,6 @@ function addVibrancyView(superview) {
   threadDictionary[vibrancyViewID] = vibrancy;
 }
 
-function setupAnimationGroupForFadeIn() {
-  var blurAnimation = CABasicAnimation.animation();
-  blurAnimation.setKeyPath("backgroundFilters.blur.inputRadius");
-  blurAnimation.setFromValue(0);
-  blurAnimation.setToValue(2);
-  var opacityAnimation = CABasicAnimation.animation();
-  opacityAnimation.setKeyPath("opacity");
-  opacityAnimation.setFromValue(0);
-  opacityAnimation.setToValue(1);
-  var animationGroup = CAAnimationGroup.animation();
-  animationGroup.setDuration(0.1);
-  animationGroup.setTimingFunction(CAMediaTimingFunction.functionWithName("easeInEaseOut"));
-  animationGroup.setAnimations([blurAnimation, opacityAnimation]);
-  return animationGroup;
-}
-
-function setupAnimationGroupForFadeOut() {
-  var blurAnimationReverse = CABasicAnimation.animation();
-  blurAnimationReverse.setKeyPath("backgroundFilters.blur.inputRadius");
-  blurAnimationReverse.setFromValue(4);
-  blurAnimationReverse.setToValue(0);
-  var opacityAnimationReverse = CABasicAnimation.animation();
-  opacityAnimationReverse.setKeyPath("opacity");
-  opacityAnimationReverse.setFromValue(1);
-  opacityAnimationReverse.setToValue(0);
-  var animationGroup = CAAnimationGroup.animation();
-  animationGroup.setDuration(0.1);
-  animationGroup.setTimingFunction(CAMediaTimingFunction.functionWithName("easeInEaseOut"));
-  animationGroup.setAnimations([blurAnimationReverse, opacityAnimationReverse]);
-  return animationGroup;
-}
-
 function getBlurFilter() {
   var blurFilter = CIFilter.filterWithName("CIGaussianBlur");
   blurFilter.setDefaults();
@@ -1302,26 +1270,19 @@ function getSettingsForFont(font) {
 
   var threadDictionary = NSThread.mainThread().threadDictionary();
   var warning = threadDictionary[vibrancyViewID];
-  console.log(warning);
 
   if (disableOptions.length >= 6 && warning.isHidden()) {
-    console.log("Showing Warning");
+    logWarning("Showing Warning");
     warning.setHidden(false);
-    warning.layer().setBackgroundFilters([getBlurFilter()]); // let animationGroupFadeIn = setupAnimationGroupForFadeIn()
-    // warning.layer().addAnimation_forKey(animationGroupFadeIn, "fadeIn")
+    warning.layer().setBackgroundFilters([getBlurFilter()]);
   } else if (!warning.isHidden()) {
-    console.log("Hiding Warning"); // let animationGroupFadeOut = setupAnimationGroupForFadeOut()
-    // warning.layer().addAnimation_forKey(animationGroupFadeOut, "fadeOut")
-
+    logWarning("Hiding Warning");
     warning.layer().setBackgroundFilters([]);
-    warning.setHidden(true); // setTimeout(function(){
-    //     warning.layer().setBackgroundFilters([])
-    //     warning.setHidden(true)
-    // }, 85)
+    warning.setHidden(true);
   } else if (disableOptions.length >= 6) {
-    console.log("Warning already shown");
+    logWarning("Warning already shown");
   } else {
-    console.log("Warning already not shown");
+    logWarning("Warning already not shown");
   }
 
   var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
