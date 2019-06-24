@@ -121,7 +121,10 @@ var radioButtonLiningFiguresID = "com.betterTypePanel.radioButton.liningFigures"
 var radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle";
 var sfSymbolSizePopupButtonID = "com.betterTypePanel.popupButton.sfSymbolSize";
 var sfSymbolSizeRow = "com.betterTypePanel.row.sfSymbolSize";
+var vibrancyViewID = "com.betterTypePanel.vibrancy";
 var main;
+var panelWidth = 312;
+var panelHeight = 210;
 /* harmony default export */ __webpack_exports__["default"] = (function () {
   runPanel();
   setupFramework();
@@ -207,8 +210,6 @@ function runPanel() {
 }
 
 function setupPanel(threadDictionary, identifier) {
-  var panelWidth = 312;
-  var panelHeight = 210;
   var panel = NSPanel.alloc().init();
   panel.setFrame_display(NSMakeRect(0, 0, panelWidth, panelHeight), true);
   panel.setStyleMask(NSTexturedBackgroundWindowMask | NSTitledWindowMask | NSClosableWindowMask);
@@ -590,8 +591,8 @@ function setupPanel(threadDictionary, identifier) {
   mainContentView.setTranslatesAutoresizingMaskIntoConstraints(false);
   panel.contentView().addSubview(mainContentView);
   panel.contentView().setFlipped(true);
-  fitSubviewToView(mainContentView, panel.contentView(), [16.0, 16.0, 8.0, 16.0]); //addVibrancyView(panel.contentView())
-
+  fitSubviewToView(mainContentView, panel.contentView(), [16.0, 16.0, 8.0, 16.0]);
+  addVibrancyView(panel.contentView());
   threadDictionary[identifier] = panel;
   var closeButton = panel.standardWindowButton(NSWindowCloseButton);
   closeButton.setCOSJSTargetFunction(function (sender) {
@@ -600,12 +601,66 @@ function setupPanel(threadDictionary, identifier) {
 }
 
 function addVibrancyView(superview) {
-  var vibrancy = NSVisualEffectView.alloc().initWithFrame(NSMakeRect(0, 0, panelWidth, panelHeight)); // TODO: Control Light/Dark Appearance
-
-  vibrancy.setAppearance(NSAppearance.appearanceNamed(NSAppearanceNameVibrantLight));
-  vibrancy.setBlendingMode(NSVisualEffectBlendingModeBehindWindow);
+  var vibrancy = NSView.alloc().initWithFrame(NSMakeRect(0, 0, panelWidth / 2.0, panelHeight));
+  vibrancy.setBackgroundColor(NSColor.colorWithRed_green_blue_alpha(0.0, 0.0, 0.0, 0.6));
+  vibrancy.setWantsLayer(true);
   superview.addSubview(vibrancy);
   fitSubviewToView(vibrancy, superview, [0.0, 0.0, 0.0, 0.0]);
+  var fontWarning = createTextField({
+    text: "Selected text doesn't contain any supported font features. Please try a different typeface.",
+    frame: NSMakeRect(0, 0, panelWidth, 17),
+    alignment: NSTextAlignmentCenter,
+    fontSize: 12
+  });
+  fontWarning.setTextColor(NSColor.whiteColor());
+  vibrancy.addSubview(fontWarning);
+  fontWarning.setTranslatesAutoresizingMaskIntoConstraints(false);
+  addEdgeConstraint(NSLayoutAttributeCenterX, fontWarning, vibrancy, 0);
+  addEdgeConstraint(NSLayoutAttributeTop, fontWarning, vibrancy, 40.0);
+  fontWarning.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(fontWarning, NSLayoutAttributeWidth, NSLayoutRelationEqual, nil, NSLayoutAttributeNotAnAttribute, 1.0, 260));
+  vibrancy.setHidden(true);
+  var threadDictionary = NSThread.mainThread().threadDictionary();
+  threadDictionary[vibrancyViewID] = vibrancy;
+}
+
+function setupAnimationGroupForFadeIn() {
+  var blurAnimation = CABasicAnimation.animation();
+  blurAnimation.setKeyPath("backgroundFilters.blur.inputRadius");
+  blurAnimation.setFromValue(0);
+  blurAnimation.setToValue(2);
+  var opacityAnimation = CABasicAnimation.animation();
+  opacityAnimation.setKeyPath("opacity");
+  opacityAnimation.setFromValue(0);
+  opacityAnimation.setToValue(1);
+  var animationGroup = CAAnimationGroup.animation();
+  animationGroup.setDuration(0.1);
+  animationGroup.setTimingFunction(CAMediaTimingFunction.functionWithName("easeInEaseOut"));
+  animationGroup.setAnimations([blurAnimation, opacityAnimation]);
+  return animationGroup;
+}
+
+function setupAnimationGroupForFadeOut() {
+  var blurAnimationReverse = CABasicAnimation.animation();
+  blurAnimationReverse.setKeyPath("backgroundFilters.blur.inputRadius");
+  blurAnimationReverse.setFromValue(4);
+  blurAnimationReverse.setToValue(0);
+  var opacityAnimationReverse = CABasicAnimation.animation();
+  opacityAnimationReverse.setKeyPath("opacity");
+  opacityAnimationReverse.setFromValue(1);
+  opacityAnimationReverse.setToValue(0);
+  var animationGroup = CAAnimationGroup.animation();
+  animationGroup.setDuration(0.1);
+  animationGroup.setTimingFunction(CAMediaTimingFunction.functionWithName("easeInEaseOut"));
+  animationGroup.setAnimations([blurAnimationReverse, opacityAnimationReverse]);
+  return animationGroup;
+}
+
+function getBlurFilter() {
+  var blurFilter = CIFilter.filterWithName("CIGaussianBlur");
+  blurFilter.setDefaults();
+  blurFilter.setValue_forKey(2, 'inputRadius');
+  blurFilter.setName("blur");
+  return blurFilter;
 }
 
 function fitSubviewToView(subview, view, constants) {
@@ -667,7 +722,7 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
       textView.didChangeText();
     }
   });
-  document.sketchObject.inspectorController().reload(); // updateUI()
+  document.sketchObject.inspectorController().reload();
 }
 
 function getFontForKey_Value(key, value) {
@@ -937,149 +992,6 @@ function updateUI() {
   }
 }
 
-function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
-  var settingsCollection = {
-    "verticalPosition": [],
-    "numberSpacing": [],
-    "numberCase": [],
-    "smallCapsLowerCase": [],
-    "smallCapsUpperCase": [],
-    "sfSymbolSize": []
-  };
-
-  var _loop = function _loop() {
-    var currentLayerSettings = getDefaultUISettings(); // Guard against text layers without any font features set
-
-    if (textLayersFeatureSettings[i] != null) {
-      textLayersFeatureSettings[i].forEach(function (featureSetting) {
-        var featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey];
-        var featureSelectorIdentifierKey = featureSetting[NSFontFeatureSelectorIdentifierKey];
-
-        if (featureTypeIdentifierKey == 10) {
-          // kVerticalPosition
-          if (featureSelectorIdentifierKey == 0) {
-            // kNormalPositionSelector
-            currentLayerSettings.verticalPosition = 'default';
-          } else if (featureSelectorIdentifierKey == 1) {
-            // kSuperiorsSelector
-            currentLayerSettings.verticalPosition = 'superscript';
-          } else if (featureSelectorIdentifierKey == 2) {
-            // kInferiorsSelector
-            currentLayerSettings.verticalPosition = 'subscript';
-          } else if (featureSelectorIdentifierKey == 3) {
-            // kOrdinalsSelector
-            currentLayerSettings.verticalPosition = 'ordinals';
-          } else if (featureSelectorIdentifierKey == 4) {
-            // kScientificInferiorsSelector
-            currentLayerSettings.verticalPosition = 'scientific inferiors';
-          } else {
-            logWarning("BetterTypeTool: Unknown Feature for Vertical Position");
-          }
-        }
-
-        if (featureTypeIdentifierKey == 6) {
-          //kNumberSpacing
-          if (featureSelectorIdentifierKey == 0) {
-            // kMonospacedNumbersSelector
-            currentLayerSettings.numberSpacing = 'monospaced';
-          } else if (featureSelectorIdentifierKey == 1) {
-            // kProportionalNumbersSelector
-            currentLayerSettings.numberSpacing = 'proportional';
-          } else if (featureSelectorIdentifierKey == 2) {
-            // kThirdWidthNumbersSelector
-            logWarning("BetterTypeTool: Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)");
-          } else if (featureSelectorIdentifierKey == 3) {
-            // kQuarterWidthNumbersSelector
-            logWarning("BetterTypeTool: Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals");
-          } else {
-            logWarning("BetterTypeTool: Unknown feature for Number Spacing");
-          }
-        }
-
-        if (featureTypeIdentifierKey == 21) {
-          // kNumberCaseType
-          if (featureSelectorIdentifierKey == 0) {
-            // kLowerCaseNumbersSelector
-            currentLayerSettings.numberCase = 'oldStyle';
-          } else if (featureSelectorIdentifierKey == 1) {
-            // kUpperCaseNumbersSelector
-            currentLayerSettings.numberCase = 'lining';
-          } else {
-            logWarning("BetterTypeTool: Unknown feature for Number Case");
-          }
-        }
-
-        if (featureTypeIdentifierKey == 37) {
-          // kLowerCase
-          if (featureSelectorIdentifierKey == 0) {
-            // kDefaultLowerCaseSelector (aka OFF)
-            currentLayerSettings.smallCapsLowerCase = false;
-          } else if (featureSelectorIdentifierKey == 1) {
-            // kLowerCaseSmallCapsSelector
-            currentLayerSettings.smallCapsLowerCase = true;
-          } else if (featureSelectorIdentifierKey == 2) {
-            // kLowerCasePetiteCapsSelector
-            logWarning("Unsupported Lower Case Small Caps Feature - Lower Case Petite Caps");
-          }
-        }
-
-        if (featureTypeIdentifierKey == 38) {
-          // kUpperCase
-          if (featureSelectorIdentifierKey == 0) {
-            // kDefaultUpperCaseSelector (aka OFF)
-            currentLayerSettings.smallCapsUpperCase = false;
-          } else if (featureSelectorIdentifierKey == 1) {
-            // kUpperCaseSmallCapsSelector
-            currentLayerSettings.smallCapsUpperCase = true;
-          } else if (featureSelectorIdentifierKey == 2) {
-            // kUpperCasePetiteCapsSelector
-            logWarning("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps");
-          }
-        }
-
-        if (featureTypeIdentifierKey == 35) {
-          // kStylisticAlternatives
-          if (featureSelectorIdentifierKey == 30) {
-            // kStylisticAltFifteenOnSelector
-            currentLayerSettings.sfSymbolSize = 'small';
-          } else if (featureSelectorIdentifierKey == 31) {
-            // kStylisticAltFifteenOffSelector
-            logWarning("WARNING: Unhandled Attempt to Set 15th Stylistic Alternative off");
-          } else if (featureSelectorIdentifierKey == 32) {
-            // kStylisticAltSixteenOnSelector
-            currentLayerSettings.sfSymbolSize = 'large';
-          } else if (featureSelectorIdentifierKey == 32) {
-            // kStylisticAltSixteenOffSelector
-            logWarning("WARNING: Unhandled Attempt to Set 16th Stylistic Alternative off");
-          }
-        }
-      });
-    } // Push current layer properties onto settingsCollection
-
-
-    for (key in currentLayerSettings) {
-      settingsCollection[key].push(currentLayerSettings[key]);
-    }
-  };
-
-  for (var i = 0; i < textLayersFeatureSettings.length; i++) {
-    var key;
-
-    _loop();
-  } // Deduplicate settingsCollection to only have unique entries
-
-
-  for (var property in settingsCollection) {
-    settingsCollection[property] = settingsCollection[property].filter(onlyUnique);
-  }
-
-  function onlyUnique(value, index, self) {
-    return self.indexOf(value) === index;
-  }
-
-  return settingsCollection;
-}
-
 function disableUI(threadDictionary) {
   var optionsToDisableArray = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : ['all'];
 
@@ -1258,7 +1170,8 @@ function checkToShowSFSymbolOption(font) {
       panel.setFrame_display_animate(NSMakeRect(panelX, panelY + 25, 312, 210), true, true);
     }
   }
-}
+} // THIS IS NOT USED 🤔
+
 
 function checkFontsForProps(fonts) {
   var threadDictionary = NSThread.mainThread().threadDictionary();
@@ -1290,6 +1203,7 @@ function checkFontsForProps(fonts) {
     });
   }
 
+  console.log("triggered");
   console.log("settingsToDisable", settingsToDisable);
 
   if (settingsToDisable.length > 0) {
@@ -1357,6 +1271,7 @@ function getOptionsToDisableFromFeaturesArray(featuresArray) {
 function getSettingsForFont(font) {
   var currentOptions = getDefaultUISettings();
   var disableOptions = getOptionsToDisableFromFont(font);
+  console.log(disableOptions);
   disableOptions.forEach(function (option) {
     switch (option) {
       case "verticalPosition":
@@ -1383,7 +1298,32 @@ function getSettingsForFont(font) {
         currentOptions.sfSymbolSize = "disabled";
         break;
     }
-  });
+  }); // check to see if need to show warning view
+
+  var threadDictionary = NSThread.mainThread().threadDictionary();
+  var warning = threadDictionary[vibrancyViewID];
+  console.log(warning);
+
+  if (disableOptions.length >= 6 && warning.isHidden()) {
+    console.log("Showing Warning");
+    warning.setHidden(false);
+    warning.layer().setBackgroundFilters([getBlurFilter()]); // let animationGroupFadeIn = setupAnimationGroupForFadeIn()
+    // warning.layer().addAnimation_forKey(animationGroupFadeIn, "fadeIn")
+  } else if (!warning.isHidden()) {
+    console.log("Hiding Warning"); // let animationGroupFadeOut = setupAnimationGroupForFadeOut()
+    // warning.layer().addAnimation_forKey(animationGroupFadeOut, "fadeOut")
+
+    warning.layer().setBackgroundFilters([]);
+    warning.setHidden(true); // setTimeout(function(){
+    //     warning.layer().setBackgroundFilters([])
+    //     warning.setHidden(true)
+    // }, 85)
+  } else if (disableOptions.length >= 6) {
+    console.log("Warning already shown");
+  } else {
+    console.log("Warning already not shown");
+  }
+
   var fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute];
 
   if (fontFeatureSettings) {

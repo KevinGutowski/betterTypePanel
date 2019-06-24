@@ -16,7 +16,10 @@ let radioButtonLiningFiguresID = "com.betterTypePanel.radioButton.liningFigures"
 let radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle"
 let sfSymbolSizePopupButtonID = "com.betterTypePanel.popupButton.sfSymbolSize"
 let sfSymbolSizeRow = "com.betterTypePanel.row.sfSymbolSize"
+let vibrancyViewID = "com.betterTypePanel.vibrancy"
 let main
+var panelWidth = 312
+var panelHeight = 210
 
 export default function() {
     runPanel()
@@ -117,8 +120,6 @@ function runPanel() {
 }
 
 function setupPanel(threadDictionary, identifier) {
-    var panelWidth = 312
-    var panelHeight = 210
     let panel = NSPanel.alloc().init()
     panel.setFrame_display(NSMakeRect(0, 0, panelWidth, panelHeight), true)
     panel.setStyleMask(NSTexturedBackgroundWindowMask | NSTitledWindowMask | NSClosableWindowMask)
@@ -588,7 +589,8 @@ function setupPanel(threadDictionary, identifier) {
     panel.contentView().addSubview(mainContentView)
     panel.contentView().setFlipped(true)
     fitSubviewToView(mainContentView,panel.contentView(),[16.0,16.0,8.0,16.0])
-    //addVibrancyView(panel.contentView())
+
+    addVibrancyView(panel.contentView())
 
     threadDictionary[identifier] = panel;
 
@@ -599,12 +601,85 @@ function setupPanel(threadDictionary, identifier) {
 }
 
 function addVibrancyView(superview) {
-    var vibrancy = NSVisualEffectView.alloc().initWithFrame(NSMakeRect(0, 0, panelWidth, panelHeight))
-    // TODO: Control Light/Dark Appearance
-    vibrancy.setAppearance(NSAppearance.appearanceNamed(NSAppearanceNameVibrantLight))
-    vibrancy.setBlendingMode(NSVisualEffectBlendingModeBehindWindow)
+    var vibrancy = NSView.alloc().initWithFrame(NSMakeRect(0, 0, panelWidth / 2.0, panelHeight))
+    vibrancy.setBackgroundColor(NSColor.colorWithRed_green_blue_alpha(0.0,0.0,0.0,0.6))
+    vibrancy.setWantsLayer(true)
+
     superview.addSubview(vibrancy)
     fitSubviewToView(vibrancy,superview, [0.0,0.0,0.0,0.0])
+
+    var fontWarning = createTextField({
+        text: "Selected text doesn't contain any supported font features. Please try a different typeface.",
+        frame: NSMakeRect(0,0,panelWidth,17),
+        alignment: NSTextAlignmentCenter,
+        fontSize: 12
+    })
+    fontWarning.setTextColor(NSColor.whiteColor())
+
+    vibrancy.addSubview(fontWarning)
+    fontWarning.setTranslatesAutoresizingMaskIntoConstraints(false)
+    addEdgeConstraint(NSLayoutAttributeCenterX, fontWarning, vibrancy, 0)
+    addEdgeConstraint(NSLayoutAttributeTop, fontWarning, vibrancy, 40.0)
+    fontWarning.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(
+        fontWarning,
+        NSLayoutAttributeWidth,
+        NSLayoutRelationEqual,
+        nil,
+        NSLayoutAttributeNotAnAttribute,
+        1.0,
+        260
+    ))
+
+    vibrancy.setHidden(true)
+    let threadDictionary = NSThread.mainThread().threadDictionary()
+    threadDictionary[vibrancyViewID] = vibrancy
+}
+
+function setupAnimationGroupForFadeIn() {
+    let blurAnimation = CABasicAnimation.animation()
+    blurAnimation.setKeyPath("backgroundFilters.blur.inputRadius")
+    blurAnimation.setFromValue(0)
+    blurAnimation.setToValue(2)
+
+    let opacityAnimation = CABasicAnimation.animation()
+    opacityAnimation.setKeyPath("opacity")
+    opacityAnimation.setFromValue(0)
+    opacityAnimation.setToValue(1)
+
+    let animationGroup = CAAnimationGroup.animation()
+    animationGroup.setDuration(0.1)
+    animationGroup.setTimingFunction(CAMediaTimingFunction.functionWithName("easeInEaseOut"))
+    animationGroup.setAnimations([blurAnimation,opacityAnimation])
+
+    return animationGroup
+}
+
+function setupAnimationGroupForFadeOut() {
+    let blurAnimationReverse = CABasicAnimation.animation()
+    blurAnimationReverse.setKeyPath("backgroundFilters.blur.inputRadius")
+    blurAnimationReverse.setFromValue(4)
+    blurAnimationReverse.setToValue(0)
+
+    let opacityAnimationReverse = CABasicAnimation.animation()
+    opacityAnimationReverse.setKeyPath("opacity")
+    opacityAnimationReverse.setFromValue(1)
+    opacityAnimationReverse.setToValue(0)
+
+    let animationGroup = CAAnimationGroup.animation()
+    animationGroup.setDuration(0.1)
+    animationGroup.setTimingFunction(CAMediaTimingFunction.functionWithName("easeInEaseOut"))
+    animationGroup.setAnimations([blurAnimationReverse,opacityAnimationReverse])
+
+    return animationGroup
+}
+
+function getBlurFilter() {
+    let blurFilter = CIFilter.filterWithName("CIGaussianBlur")
+    blurFilter.setDefaults()
+    blurFilter.setValue_forKey(2, 'inputRadius')
+    blurFilter.setName("blur")
+
+    return blurFilter
 }
 
 function fitSubviewToView(subview, view, constants) {
@@ -1147,6 +1222,7 @@ function checkToShowSFSymbolOption(font) {
     }
 }
 
+// THIS IS NOT USED 🤔
 function checkFontsForProps(fonts) {
     let threadDictionary = NSThread.mainThread().threadDictionary()
     let optionsToDisableFromFonts = getOptionsToDisableFromFonts(fonts)
@@ -1176,7 +1252,7 @@ function checkFontsForProps(fonts) {
             }
         })
     }
-
+    console.log("triggered")
     console.log("settingsToDisable", settingsToDisable)
     if (settingsToDisable.length > 0) {
         disableUI(threadDictionary, settingsToDisable)
@@ -1247,6 +1323,9 @@ function getOptionsToDisableFromFeaturesArray(featuresArray) {
 function getSettingsForFont(font) {
     let currentOptions = getDefaultUISettings()
     let disableOptions = getOptionsToDisableFromFont(font)
+
+    console.log(disableOptions)
+
     disableOptions.forEach(option => {
         switch (option) {
             case "verticalPosition":
@@ -1269,6 +1348,34 @@ function getSettingsForFont(font) {
                 break;
         }
     })
+
+    // check to see if need to show warning view
+    let threadDictionary = NSThread.mainThread().threadDictionary()
+    let warning = threadDictionary[vibrancyViewID]
+
+    console.log(warning)
+    if ((disableOptions.length >= 6) && (warning.isHidden())) {
+        console.log("Showing Warning")
+        warning.setHidden(false)
+        warning.layer().setBackgroundFilters([getBlurFilter()])
+
+        // let animationGroupFadeIn = setupAnimationGroupForFadeIn()
+        // warning.layer().addAnimation_forKey(animationGroupFadeIn, "fadeIn")
+    } else if (!warning.isHidden()) {
+        console.log("Hiding Warning")
+        // let animationGroupFadeOut = setupAnimationGroupForFadeOut()
+        // warning.layer().addAnimation_forKey(animationGroupFadeOut, "fadeOut")
+        warning.layer().setBackgroundFilters([])
+        warning.setHidden(true)
+        // setTimeout(function(){
+        //     warning.layer().setBackgroundFilters([])
+        //     warning.setHidden(true)
+        // }, 85)
+    } else if (disableOptions.length >= 6) {
+        console.log("Warning already shown")
+    } else {
+        console.log("Warning already not shown")
+    }
 
     let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
     if (fontFeatureSettings) {
