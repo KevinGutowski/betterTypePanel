@@ -1,4 +1,4 @@
-<a href="https://github.com/KevinGutowski/betterTypePanel/releases/tag/v0.2.0">
+<a href="https://github.com/KevinGutowski/betterTypePanel/releases/tag/v0.3.0">
   <img src="images/banner.png" alt="BetterTypeTool - A Sketchplugin to make it easy to apply common OpenType Features"/>
 </a>
 
@@ -26,7 +26,7 @@
 - [X] Dark mode support
 - [X] Properly style small caps buttons
 - [X] Basic Support for applying properties to multiple selected Text Layers
-- [ ] Better communicate when fonts have unspported properties
+- [X] Better communicate when fonts have unspported properties
 - [X] Basic substring support
 
 ## Later Goals
@@ -36,7 +36,7 @@
 - [ ] Respect Pixelfitting settings
 - [ ] More OpenType Features! (Ligatures, Stylistic Sets, etc)
 - [ ] Text Style support (I hope Sketch will consider tweaking things on their end rather me hacking it together)
-- [ ] Better substring support
+- [X] Better substring support
 - [ ] Keyboard shortcuts!
 
 ## Building The Plugin
