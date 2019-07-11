@@ -747,7 +747,6 @@ function updateUI(useFullSelection = false) {
     if (selectedLayers == null) {
         disableUI(threadDictionary)
         if (!warning.isHidden()) {
-            console.log("Hiding Warning")
             warning.layer().setBackgroundFilters([])
             warning.setHidden(true)
         }
@@ -758,7 +757,6 @@ function updateUI(useFullSelection = false) {
     if (textLayers.length == 0) {
         disableUI(threadDictionary)
         if (!warning.isHidden()) {
-            console.log("Hiding Warning")
             warning.layer().setBackgroundFilters([])
             warning.setHidden(true)
         }
@@ -824,17 +822,15 @@ function updateUI(useFullSelection = false) {
         }
     }
     if ((showWarningMessage) && (warning.isHidden())) {
-        console.log("Showing warning")
         warning.setHidden(false)
         warning.layer().setBackgroundFilters([getBlurFilter()])
     } else if ((!showWarningMessage) && (!warning.isHidden())) {
-        console.log("Hiding Warning")
         warning.layer().setBackgroundFilters([])
         warning.setHidden(true)
     } else if ((showWarningMessage) && (!warning.isHidden())) {
-        console.log("Warning already being shown")
+        logWarning("Warning already being shown")
     } else {
-        console.log("Warning is already hidden")
+        logWarning("Warning is already hidden")
     }
 
     //Update UI Panel with only one update (to prevent flickering)
@@ -1220,58 +1216,6 @@ function checkToShowSFSymbolOption(font) {
             panel.setFrame_display_animate(NSMakeRect(panelX, panelY + 25, 312, 210), true, true)
         }
     }
-}
-
-// THIS IS NOT USED 🤔
-function checkFontsForProps(currentSettings) {
-    console.log(currentSettings)
-    // In order for an option to be disabled, every font in the selection must not have that feature
-    // If at least one of the fonts has the supported font feature then we don't disable the corresponding UI component
-    // This is under the assumption that applying font features to fonts that don't support them don't do anything
-    // This wont be true when supporting stylistic sets :(
-    //
-    // look at the first set of font options and see if each of them exist in the other fonts
-    let settingsToDisable = []
-
-    if (optionsToDisableFromFonts.length == 1) {
-        settingsToDisable = optionsToDisableFromFonts[0]
-    } else {
-        optionsToDisableFromFonts[0].forEach(fontOption => {
-            let shouldDisableFontOption = true
-            for (let i = 1; i < optionsToDisableFromFonts.length; i++) {
-                if (!optionsToDisableFromFonts[i].includes(fontOption)) {
-                    shouldDisableFontOption = false
-                    return
-                }
-            }
-
-            if (shouldDisableFontOption) {
-                settingsToDisable.push(fontOption)
-            }
-        })
-    }
-
-    if (settingsToDisable.length > 0) {
-        disableUI(threadDictionary, settingsToDisable)
-    }
-
-    // // check to see if need to show warning view
-    // let threadDictionary = NSThread.mainThread().threadDictionary()
-    // let warning = threadDictionary[vibrancyViewID]
-
-    // if ((disableOptions.length >= 6) && (warning.isHidden())) {
-    //     logWarning("Showing Warning")
-    //     warning.setHidden(false)
-    //     warning.layer().setBackgroundFilters([getBlurFilter()])
-    // } else if (!warning.isHidden()) {
-    //     logWarning("Hiding Warning")
-    //     warning.layer().setBackgroundFilters([])
-    //     warning.setHidden(true)
-    // } else if (disableOptions.length >= 6) {
-    //     logWarning("Warning already shown")
-    // } else {
-    //     logWarning("Warning already not shown")
-    // }
 }
 
 function getOptionsToDisableFromFont(font) {
