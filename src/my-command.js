@@ -1068,6 +1068,7 @@ function disableUI(threadDictionary, optionsToDisableArray = ['all']) {
 function closePanel(panel, threadDictionary, threadIdentifier) {
         panel.close()
 
+        let main = HSMain.alloc().init()
         // Stop text selection listening
         main.stopObservingTextViewSelectionChanges()
 
