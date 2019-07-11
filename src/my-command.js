@@ -16,7 +16,10 @@ let radioButtonLiningFiguresID = "com.betterTypePanel.radioButton.liningFigures"
 let radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle"
 let sfSymbolSizePopupButtonID = "com.betterTypePanel.popupButton.sfSymbolSize"
 let sfSymbolSizeRow = "com.betterTypePanel.row.sfSymbolSize"
+let vibrancyViewID = "com.betterTypePanel.vibrancy"
 let main
+var panelWidth = 312
+var panelHeight = 210
 
 export default function() {
     runPanel()
@@ -117,8 +120,6 @@ function runPanel() {
 }
 
 function setupPanel(threadDictionary, identifier) {
-    var panelWidth = 312
-    var panelHeight = 210
     let panel = NSPanel.alloc().init()
     panel.setFrame_display(NSMakeRect(0, 0, panelWidth, panelHeight), true)
     panel.setStyleMask(NSTexturedBackgroundWindowMask | NSTitledWindowMask | NSClosableWindowMask)
@@ -588,7 +589,8 @@ function setupPanel(threadDictionary, identifier) {
     panel.contentView().addSubview(mainContentView)
     panel.contentView().setFlipped(true)
     fitSubviewToView(mainContentView,panel.contentView(),[16.0,16.0,8.0,16.0])
-    //addVibrancyView(panel.contentView())
+
+    addVibrancyView(panel.contentView())
 
     threadDictionary[identifier] = panel;
 
@@ -599,12 +601,47 @@ function setupPanel(threadDictionary, identifier) {
 }
 
 function addVibrancyView(superview) {
-    var vibrancy = NSVisualEffectView.alloc().initWithFrame(NSMakeRect(0, 0, panelWidth, panelHeight))
-    // TODO: Control Light/Dark Appearance
-    vibrancy.setAppearance(NSAppearance.appearanceNamed(NSAppearanceNameVibrantLight))
-    vibrancy.setBlendingMode(NSVisualEffectBlendingModeBehindWindow)
+    var vibrancy = NSView.alloc().initWithFrame(NSMakeRect(0, 0, panelWidth, panelHeight))
+    vibrancy.setBackgroundColor(NSColor.colorWithRed_green_blue_alpha(0.0,0.0,0.0,0.6))
+    vibrancy.setWantsLayer(true)
+
     superview.addSubview(vibrancy)
     fitSubviewToView(vibrancy,superview, [0.0,0.0,0.0,0.0])
+
+    var fontWarning = createTextField({
+        text: "Selected text doesn't contain any supported font features. Please try a different typeface.",
+        frame: NSMakeRect(0,0,panelWidth,17),
+        alignment: NSTextAlignmentCenter,
+        fontSize: 12
+    })
+    fontWarning.setTextColor(NSColor.whiteColor())
+
+    vibrancy.addSubview(fontWarning)
+    fontWarning.setTranslatesAutoresizingMaskIntoConstraints(false)
+    addEdgeConstraint(NSLayoutAttributeCenterX, fontWarning, vibrancy, 0)
+    addEdgeConstraint(NSLayoutAttributeTop, fontWarning, vibrancy, 40.0)
+    fontWarning.addConstraint(NSLayoutConstraint.constraintWithItem_attribute_relatedBy_toItem_attribute_multiplier_constant(
+        fontWarning,
+        NSLayoutAttributeWidth,
+        NSLayoutRelationEqual,
+        nil,
+        NSLayoutAttributeNotAnAttribute,
+        1.0,
+        260
+    ))
+
+    vibrancy.setHidden(true)
+    let threadDictionary = NSThread.mainThread().threadDictionary()
+    threadDictionary[vibrancyViewID] = vibrancy
+}
+
+function getBlurFilter() {
+    let blurFilter = CIFilter.filterWithName("CIGaussianBlur")
+    blurFilter.setDefaults()
+    blurFilter.setValue_forKey(2, 'inputRadius')
+    blurFilter.setName("blur")
+
+    return blurFilter
 }
 
 function fitSubviewToView(subview, view, constants) {
@@ -661,9 +698,9 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
             let textView = textLayer.sketchObject.editingDelegate().textView()
             let textStorage = textView.textStorage()
             let fonts = getFontsFromTextLayer(textLayer)
-            fonts.forEach(fontForRange => {
-                let font = fontForRange.font
-                let range = fontForRange.range
+            fonts.forEach(fontWithRange => {
+                let font = fontWithRange.font
+                let range = fontWithRange.range
                 let fontSize = font.pointSize()
 
                 let descriptor = font
@@ -678,7 +715,6 @@ function updateFontFeatureSettingsAttribute(settingsAttribute) {
         }
     })
     document.sketchObject.inspectorController().reload()
-    // updateUI()
 }
 
 function getFontForKey_Value(key, value) {
@@ -706,64 +742,95 @@ function updateUI(useFullSelection = false) {
     var selectedLayers = document.selectedLayers.layers
     let threadDictionary = NSThread.mainThread().threadDictionary()
 
+    let warning = threadDictionary[vibrancyViewID]
+
     if (selectedLayers == null) {
         disableUI(threadDictionary)
+        if (!warning.isHidden()) {
+            warning.layer().setBackgroundFilters([])
+            warning.setHidden(true)
+        }
         return
     }
 
     var textLayers = selectedLayers.filter(layer => layer.type == "Text")
     if (textLayers.length == 0) {
         disableUI(threadDictionary)
+        if (!warning.isHidden()) {
+            warning.layer().setBackgroundFilters([])
+            warning.setHidden(true)
+        }
         return
     }
 
     var textLayersFeatureSettings = []
+
+    let fontSettingsObjects = []
     textLayers.forEach(textLayer => {
-        if (textLayer.sketchObject.isEditingText() == 1) {
-            let fonts = getFontsFromTextLayer(textLayer, useFullSelection)
-            fonts.forEach(fontForRange => {
-                let font = fontForRange.font
-                checkToShowSFSymbolOption(font)
-                let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
-                textLayersFeatureSettings.push(fontFeatureSettings)
-            })
-        } else {
-            let fonts = getFontsFromTextLayer(textLayer)
-            fonts.forEach((fontForRange, index) => {
-                let font = fontForRange.font
-                checkToShowSFSymbolOption(font)
-                 let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
-                textLayersFeatureSettings.push(fontFeatureSettings)
-            })
-        }
+        let fonts = getFontsFromTextLayer(textLayer, useFullSelection)
+        fonts.forEach(fontWithRange => {
+            checkToShowSFSymbolOption(fontWithRange.font)
+            let currentSettings = getSettingsForFont(fontWithRange.font)
+            fontSettingsObjects.push(currentSettings)
+        })
     })
 
-    // Update uiSettings array
-    // need to do this because fontFeatureSettings only has
-    // settings for applied options (doesn't contain state for all options)
-    var updatedUISettings
 
-    // Check to see if the textLayersFeatureSettings is full of null entries
-    var isFeatureSettingsArrayAllNull = true
-    for (let i = 0; i < textLayersFeatureSettings.length; i++) {
-        if (textLayersFeatureSettings[i] != null) {
-            isFeatureSettingsArrayAllNull = false
-            break
+    // Settings object looks like this
+    //{
+    //    smallCapsLowerCase: true
+    //     smallCapsUpperCase: false
+    //     sfSymbolSize: 'medium'
+    //     numberCase: 'disabled'
+    //     verticalPosition: 'default'
+    //     numberSpacing: 'proportional'
+    // }
+
+    let updatedUISettings = {
+        "smallCapsLowerCase": [],
+        "smallCapsUpperCase": [],
+        "sfSymbolSize": [],
+        "numberCase": [],
+        "verticalPosition": [],
+        "numberSpacing": []
+    }
+    fontSettingsObjects.forEach(fontSetting => {
+        Object.keys(fontSetting).forEach(key => {
+            updatedUISettings[key].push(fontSetting[key])
+        })
+    })
+
+    // Deduplicate settingsCollection to only have unique entries
+    for (var property in updatedUISettings) {
+        updatedUISettings[property] = updatedUISettings[property].filter(onlyUnique)
+    }
+
+    function onlyUnique(value,index,self) {
+        return self.indexOf(value) === index
+    }
+
+    let showWarningMessage = true
+    for (var setting in updatedUISettings) {
+        if (updatedUISettings[setting].length > 1 ) {
+            showWarningMessage = false
+            break;
+        }
+
+        if (updatedUISettings[setting][0] !== "disabled") {
+            showWarningMessage = false
+            break;
         }
     }
-    if (isFeatureSettingsArrayAllNull) {
-        // Bc the array is all null then just set the default UI settings
-        updatedUISettings = {
-            'verticalPosition': ['default'], // 'default', 'superscript', 'subscript', 'ordinals', 'scientific inferiors'
-            'numberSpacing': ['proportional'], // 'proportional', 'monospaced'
-            'numberCase': ['lining'], // 'lining', 'oldStyle'
-            'smallCapsLowerCase': [false], // bool
-            'smallCapsUpperCase': [false], // bool
-            'sfSymbolSize': ['medium'] // 'small', 'medium', 'large'
-        }
+    if ((showWarningMessage) && (warning.isHidden())) {
+        warning.setHidden(false)
+        warning.layer().setBackgroundFilters([getBlurFilter()])
+    } else if ((!showWarningMessage) && (!warning.isHidden())) {
+        warning.layer().setBackgroundFilters([])
+        warning.setHidden(true)
+    } else if ((showWarningMessage) && (!warning.isHidden())) {
+        logWarning("Warning already being shown")
     } else {
-        // Get an updated list of settings from textLayerFeatureSettings array
-        updatedUISettings = modifyUISettings(textLayersFeatureSettings, getDefaultUISettings)
+        logWarning("Warning is already hidden")
     }
 
     //Update UI Panel with only one update (to prevent flickering)
@@ -813,6 +880,8 @@ function updateUI(useFullSelection = false) {
                     // console.log('Setting UI: Vertical Position = Scientific Notation')
                     verticalPositionPopupButton.selectItemWithTitle('Scientific Notation')
                     verticalPositionPopupButton.itemWithTitle('Scientific Notation').setState(NSControlStateValueOn)
+                } else if (updatedUISettings[uiSetting][0] == 'disabled') {
+                    verticalPositionPopupButton.setEnabled(false)
                 } else {
                     logWarning('BetterTypeTool: ERROR Attempting update panel state - Out of scope of verticalPosition options')
                 }
@@ -836,8 +905,13 @@ function updateUI(useFullSelection = false) {
                     // console.log('Setting UI: Number Spacing == Monospaced/Tabular')
                     radioButtonProportional.setState(NSOffState)
                     radioButtonMonospacedOrTabular.setState(NSOnState)
+                } else if (updatedUISettings[uiSetting][0] == 'disabled') {
+                    radioButtonProportional.setState(NSOffState)
+                    radioButtonMonospacedOrTabular.setState(NSOffState)
+                    radioButtonProportional.setEnabled(false)
+                    radioButtonMonospacedOrTabular.setEnabled(false)
                 } else {
-                    // console.log('Error: Attempting update panel state - Out of scope of numberSpacing options')
+                    logWarning('BetterTypeTool: ERROR Attempting update panel state - Out of scope of numberSpacing options')
                 }
             }
 
@@ -859,8 +933,13 @@ function updateUI(useFullSelection = false) {
                     // console.log('Setting UI: Number Case = Old-style figures')
                     radioButtonLiningFigures.setState(NSOffState)
                     radioButtonOldStyleFigures.setState(NSOnState)
+                } else if (updatedUISettings[uiSetting][0] == 'disabled') {
+                    radioButtonLiningFigures.setState(NSOffState)
+                    radioButtonOldStyleFigures.setState(NSOffState)
+                    radioButtonLiningFigures.setEnabled(false)
+                    radioButtonOldStyleFigures.setEnabled(false)
                 } else {
-                    // console.log('Error: Attempting to update panel state - Out of scope of numberCase options')
+                    logWarning('BetterTypeTool: ERROR Attempting to update panel state - Out of scope of numberCase options')
                 }
             }
 
@@ -877,6 +956,11 @@ function updateUI(useFullSelection = false) {
                 } else if (updatedUISettings[uiSetting][0] == true) {
                     // console.log('Setting UI: Small Caps Upper Case = On')
                     pushOnOffButtonUpperCase.setState(NSOnState)
+                } else if (updatedUISettings[uiSetting][0] == 'disabled') {
+                    pushOnOffButtonUpperCase.setState(NSOffState)
+                    pushOnOffButtonUpperCase.setEnabled(false)
+                } else {
+                     logWarning('BetterTypeTool: ERROR Attempting to update panel state - Out of scope of smallCapsUpperCase options')
                 }
             }
 
@@ -893,6 +977,11 @@ function updateUI(useFullSelection = false) {
                 } else if (updatedUISettings[uiSetting][0] == true) {
                     // console.log('Setting UI: Small Caps Lower Case = On')
                     pushOnOffButtonLowerCase.setState(NSOnState)
+                } else if (updatedUISettings[uiSetting][0] == 'disabled') {
+                    pushOnOffButtonLowerCase.setState(NSOffState)
+                    pushOnOffButtonLowerCase.setEnabled(false)
+                } else {
+                    logWarning('BetterTypeTool: ERROR Attempting to update panel state - Out of scope of smallCapsLowerCase options')
                 }
             }
 
@@ -911,7 +1000,7 @@ function updateUI(useFullSelection = false) {
                     } else if (sfSymbolSizeSetting == 'medium') {
                         sfSymbolSizePopupButton.itemWithTitle('Medium').setState(NSControlStateValueMixed)
                     } else if (sfSymbolSizeSetting == 'large') {
-                        verticalPositionPopupButton.itemWithTitle('Large').setState(NSControlStateValueMixed)
+                        sfSymbolSizePopupButton.itemWithTitle('Large').setState(NSControlStateValueMixed)
                     }
                 })
             } else {
@@ -924,6 +1013,8 @@ function updateUI(useFullSelection = false) {
                 } else if (updatedUISettings[uiSetting][0] == 'large'){
                     sfSymbolSizePopupButton.selectItemWithTitle('Large')
                     sfSymbolSizePopupButton.itemWithTitle('Large').setState(NSControlStateValueOn)
+                } else if (updatedUISettings[uiSetting][0] == 'disabled') {
+                    sfSymbolSizePopupButton.setEnabled(false)
                 } else {
                     logWarning('BetterTypeTool: ERROR Attempting update panel state - Out of scope of sfSymbolSize options')
                 }
@@ -935,170 +1026,43 @@ function updateUI(useFullSelection = false) {
     }
 }
 
-function modifyUISettings(textLayersFeatureSettings, getDefaultUISettings) {
-
-    let settingsCollection = {
-        "verticalPosition": [],
-        "numberSpacing": [],
-        "numberCase": [],
-        "smallCapsLowerCase": [],
-        "smallCapsUpperCase": [],
-        "sfSymbolSize": []
-    }
-
-    for (var i = 0; i < textLayersFeatureSettings.length; i++) {
-        let currentLayerSettings = getDefaultUISettings()
-
-        // Guard against text layers without any font features set
-        if (textLayersFeatureSettings[i] != null) {
-            textLayersFeatureSettings[i].forEach(function(featureSetting) {
-
-                const featureTypeIdentifierKey = featureSetting[NSFontFeatureTypeIdentifierKey]
-                const featureSelectorIdentifierKey = featureSetting[NSFontFeatureSelectorIdentifierKey]
-
-                if (featureTypeIdentifierKey == 10) {
-                    // kVerticalPosition
-                    if (featureSelectorIdentifierKey == 0) {
-                        // kNormalPositionSelector
-                        currentLayerSettings.verticalPosition = 'default'
-                    } else if (featureSelectorIdentifierKey == 1) {
-                        // kSuperiorsSelector
-                        currentLayerSettings.verticalPosition = 'superscript'
-                    } else if (featureSelectorIdentifierKey == 2) {
-                        // kInferiorsSelector
-                        currentLayerSettings.verticalPosition = 'subscript'
-                    } else if (featureSelectorIdentifierKey == 3) {
-                        // kOrdinalsSelector
-                        currentLayerSettings.verticalPosition = 'ordinals'
-                    } else if (featureSelectorIdentifierKey == 4) {
-                        // kScientificInferiorsSelector
-                        currentLayerSettings.verticalPosition = 'scientific inferiors'
-                    } else {
-                        logWarning("BetterTypeTool: Unknown Feature for Vertical Position")
-                    }
-                }
-
-                if (featureTypeIdentifierKey == 6) {
-                    //kNumberSpacing
-                    if (featureSelectorIdentifierKey == 0) {
-                        // kMonospacedNumbersSelector
-                        currentLayerSettings.numberSpacing = 'monospaced'
-                    } else if (featureSelectorIdentifierKey == 1) {
-                        // kProportionalNumbersSelector
-                        currentLayerSettings.numberSpacing = 'proportional'
-                    } else if (featureSelectorIdentifierKey == 2) {
-                        // kThirdWidthNumbersSelector
-                         logWarning("BetterTypeTool: Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)")
-                    } else if (featureSelectorIdentifierKey == 3) {
-                        // kQuarterWidthNumbersSelector
-                        logWarning("BetterTypeTool: Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals")
-                    } else {
-                        logWarning("BetterTypeTool: Unknown feature for Number Spacing")
-                    }
-                }
-
-                if (featureTypeIdentifierKey == 21) {
-                    // kNumberCaseType
-                    if (featureSelectorIdentifierKey == 0) {
-                        // kLowerCaseNumbersSelector
-                        currentLayerSettings.numberCase = 'oldStyle'
-                    } else if (featureSelectorIdentifierKey == 1) {
-                        // kUpperCaseNumbersSelector
-                        currentLayerSettings.numberCase = 'lining'
-                    } else {
-                        logWarning("BetterTypeTool: Unknown feature for Number Case")
-                    }
-                }
-
-                if (featureTypeIdentifierKey == 37) {
-                    // kLowerCase
-                    if (featureSelectorIdentifierKey == 0) {
-                        // kDefaultLowerCaseSelector (aka OFF)
-                        currentLayerSettings.smallCapsLowerCase = false
-                    } else if (featureSelectorIdentifierKey == 1) {
-                        // kLowerCaseSmallCapsSelector
-                        currentLayerSettings.smallCapsLowerCase = true
-                    } else if (featureSelectorIdentifierKey == 2) {
-                        // kLowerCasePetiteCapsSelector
-                        logWarning("Unsupported Lower Case Small Caps Feature - Lower Case Petite Caps")
-                    }
-                }
-
-                if (featureTypeIdentifierKey == 38) {
-                    // kUpperCase
-                    if (featureSelectorIdentifierKey == 0) {
-                        // kDefaultUpperCaseSelector (aka OFF)
-                        currentLayerSettings.smallCapsUpperCase = false
-                    } else if (featureSelectorIdentifierKey == 1) {
-                        // kUpperCaseSmallCapsSelector
-                        currentLayerSettings.smallCapsUpperCase = true
-                    } else if (featureSelectorIdentifierKey == 2) {
-                        // kUpperCasePetiteCapsSelector
-                        logWarning("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps")
-                    }
-                }
-
-                if (featureTypeIdentifierKey == 35) {
-                    // kStylisticAlternatives
-                    if (featureSelectorIdentifierKey == 30) {
-                        // kStylisticAltFifteenOnSelector
-                        currentLayerSettings.sfSymbolSize = 'small'
-                    } else if (featureSelectorIdentifierKey == 31) {
-                        // kStylisticAltFifteenOffSelector
-                        logWarning("WARNING: Unhandled Attempt to Set 15th Stylistic Alternative off")
-                    } else if (featureSelectorIdentifierKey == 32) {
-                        // kStylisticAltSixteenOnSelector
-                        currentLayerSettings.sfSymbolSize = 'large'
-                    } else if (featureSelectorIdentifierKey == 32) {
-                        // kStylisticAltSixteenOffSelector
-                        logWarning("WARNING: Unhandled Attempt to Set 16th Stylistic Alternative off")
-                    }
-                }
-            })
-        }
-
-        // Push current layer properties onto settingsCollection
-        for (var key in currentLayerSettings) {
-            settingsCollection[key].push(currentLayerSettings[key])
-        }
-
-    }
-
-    // Deduplicate settingsCollection to only have unique entries
-    for (var property in settingsCollection) {
-        settingsCollection[property] = settingsCollection[property].filter(onlyUnique)
-    }
-
-    function onlyUnique(value,index,self) {
-        return self.indexOf(value) === index
-    }
-
-    return settingsCollection
-}
-
-function disableUI(threadDictionary) {
+function disableUI(threadDictionary, optionsToDisableArray = ['all']) {
+    // optionsToDisable is an array that can include "all", "verticalPosition", "numberSpacing", "numberCase", "smallCapsUppercase", "smallCapsLowerCase", "sfSymbolSize"
     //TODO: Maybe reset the state to the deault params when UI is disabled
-    let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
-    verticalPositionPopupButton.setEnabled(false)
 
-    let radioButtonProportional = threadDictionary[radioButtonProportionalID]
-    let radioButtonMonospacedOrTabular = threadDictionary[radioButtonMonospacedOrTabularID]
-    radioButtonProportional.setEnabled(false)
-    radioButtonMonospacedOrTabular.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('verticalPosition')) {
+        let verticalPositionPopupButton = threadDictionary[verticalPositionPopupButtonID]
+        verticalPositionPopupButton.setEnabled(false)
+    }
 
-    let radioButtonLiningFigures = threadDictionary[radioButtonLiningFiguresID]
-    let radioButtonOldStyleFigures = threadDictionary[radioButtonOldStyleFiguresID]
-    radioButtonLiningFigures.setEnabled(false)
-    radioButtonOldStyleFigures.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('numberSpacing')) {
+        let radioButtonProportional = threadDictionary[radioButtonProportionalID]
+        let radioButtonMonospacedOrTabular = threadDictionary[radioButtonMonospacedOrTabularID]
+        radioButtonProportional.setEnabled(false)
+        radioButtonMonospacedOrTabular.setEnabled(false)
+    }
 
-    let pushOnOffButtonUpperCase = threadDictionary[pushOnOffButtonUpperCaseID]
-    pushOnOffButtonUpperCase.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('numberCase')) {
+        let radioButtonLiningFigures = threadDictionary[radioButtonLiningFiguresID]
+        let radioButtonOldStyleFigures = threadDictionary[radioButtonOldStyleFiguresID]
+        radioButtonLiningFigures.setEnabled(false)
+        radioButtonOldStyleFigures.setEnabled(false)
+    }
 
-    let pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID]
-    pushOnOffButtonLowerCase.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('smallCapsUpperCase')) {
+        let pushOnOffButtonUpperCase = threadDictionary[pushOnOffButtonUpperCaseID]
+        pushOnOffButtonUpperCase.setEnabled(false)
+    }
 
-    let sfSymbolSizePopupButton = threadDictionary[sfSymbolSizePopupButtonID]
-    sfSymbolSizePopupButton.setEnabled(false)
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('smallCapsLowerCase')) {
+        let pushOnOffButtonLowerCase = threadDictionary[pushOnOffButtonLowerCaseID]
+        pushOnOffButtonLowerCase.setEnabled(false)
+    }
+
+    if (optionsToDisableArray.includes('all') || optionsToDisableArray.includes('sfSymbolSize')) {
+        let sfSymbolSizePopupButton = threadDictionary[sfSymbolSizePopupButtonID]
+        sfSymbolSizePopupButton.setEnabled(false)
+    }
 }
 
 function closePanel(panel, threadDictionary, threadIdentifier) {
@@ -1118,12 +1082,12 @@ function closePanel(panel, threadDictionary, threadIdentifier) {
     //Start with Default Settings
 function getDefaultUISettings() {
     return {
-        'verticalPosition': 'default', // 'default', 'superscript', 'subscript', 'ordinals', 'scientific inferiors'
-        'numberSpacing': 'proportional', // 'proportional', 'monospaced'
-        'numberCase': 'lining', // 'lining', 'oldStyle'
-        'smallCapsLowerCase': false, // bool
-        'smallCapsUpperCase': false, // bool
-        'sfSymbolSize': 'medium'
+        'verticalPosition': 'default', // 'default', 'superscript', 'subscript', 'ordinals', 'scientific inferiors', 'disabled'
+        'numberSpacing': 'proportional', // 'proportional', 'monospaced', 'disabled'
+        'numberCase': 'lining', // 'lining', 'oldStyle', 'disabled'
+        'smallCapsLowerCase': false, // bool, 'disabled'
+        'smallCapsUpperCase': false, // bool, 'disabled'
+        'sfSymbolSize': 'medium' // 'small', 'medium', 'large', 'disabled'
         // If updating this list remember to update the default updatedUISettings
         // TODO: Refactor so that the Default UI settings is in one place.
     }
@@ -1252,4 +1216,261 @@ function checkToShowSFSymbolOption(font) {
             panel.setFrame_display_animate(NSMakeRect(panelX, panelY + 25, 312, 210), true, true)
         }
     }
+}
+
+function getOptionsToDisableFromFont(font) {
+    framework('CoreText')
+    let main = HSMain.alloc().init()
+
+    const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null)
+    const features = CTFontCopyFeatures(coreTextFont)
+    let featuresArray = main.bridgeArray(features)
+
+    let optionsToDisableForFont = getOptionsToDisableFromFeaturesArray(featuresArray)
+
+    let familyName = font.familyName().toLowerCase().trim()
+    let supportedFontFamilies = [
+        "sf pro text",
+        "sf pro rounded",
+        "sf pro display",
+        "sf compact text",
+        "sf compact rounded",
+        "sf compact display"
+    ]
+    if (!supportedFontFamilies.includes(familyName)) {
+        optionsToDisableForFont.push('sfSymbolSize')
+    }
+
+    return optionsToDisableForFont
+}
+
+function getOptionsToDisableFromFeaturesArray(featuresArray) {
+    let optionsToDisableForFont = []
+
+    if(!featuresArray) {
+        optionsToDisableForFont.push('verticalPosition','numberSpacing','numberCase', 'smallCapsLowerCase', 'smallCapsUpperCase')
+    } else {
+        let featureIDs = []
+        featuresArray.forEach(feature => {
+            featureIDs.push(Number(feature["CTFeatureTypeIdentifier"]))
+        })
+
+        if (!featureIDs.includes(10)) {
+            // Vertical Position
+            optionsToDisableForFont.push('verticalPosition')
+        }
+        if (!featureIDs.includes(6)) {
+            // Number Spacing
+            optionsToDisableForFont.push('numberSpacing')
+        }
+        if (!featureIDs.includes(21)) {
+            // Number Case
+            optionsToDisableForFont.push('numberCase')
+        }
+        if (!featureIDs.includes(37)) {
+            // Small Caps Lower Case
+            optionsToDisableForFont.push('smallCapsLowerCase')
+        }
+        if (!featureIDs.includes(38)) {
+            // Small Caps Upper Case
+            optionsToDisableForFont.push('smallCapsUpperCase')
+        }
+    }
+    return optionsToDisableForFont
+}
+
+function getSettingsForFont(font) {
+    let currentOptions = getDefaultUISettings()
+    let disableOptions = getOptionsToDisableFromFont(font)
+
+    disableOptions.forEach(option => {
+        switch (option) {
+            case "verticalPosition":
+                currentOptions.verticalPosition = "disabled"
+                break;
+            case "numberSpacing":
+                currentOptions.numberSpacing = "disabled"
+                break;
+            case "numberCase":
+                currentOptions.numberCase = "disabled"
+                break;
+            case "smallCapsLowerCase":
+                currentOptions.smallCapsLowerCase = "disabled"
+                break;
+            case "smallCapsUpperCase":
+                currentOptions.smallCapsUpperCase = "disabled"
+                break;
+            case "sfSymbolSize":
+                currentOptions.sfSymbolSize = "disabled"
+                break;
+        }
+    })
+
+    let fontFeatureSettings = font.fontDescriptor().fontAttributes()[NSFontFeatureSettingsAttribute]
+    if (fontFeatureSettings) {
+        fontFeatureSettings.forEach(featureSetting => {
+            const featureTypeIdentifierKey = Number(featureSetting[NSFontFeatureTypeIdentifierKey])
+            const featureSelectorIdentifierKey = Number(featureSetting[NSFontFeatureSelectorIdentifierKey])
+
+            switch (featureTypeIdentifierKey) {
+                // kVerticalPosition
+                case 10:
+                    switch (featureSelectorIdentifierKey) {
+                        // kNormalPositionSelector
+                        case 0:
+                            currentOptions.verticalPosition = 'default'
+                            break;
+
+                        // kSuperiorsSelector
+                        case 1:
+                            currentOptions.verticalPosition = 'superscript'
+                            break;
+
+                        // kInferiorsSelector
+                        case 2:
+                            currentOptions.verticalPosition = 'subscript'
+                            break;
+
+                        // kOrdinalsSelector
+                        case 3:
+                            currentOptions.verticalPosition = 'ordinals'
+                            break;
+
+                        // kScientificInferiorsSelector
+                        case 4:
+                            currentOptions.verticalPosition = 'scientific inferiors'
+                            break;
+
+                        default:
+                            logWarning("BetterTypeTool: Unknown Feature for Vertical Position")
+                            break;
+                    }
+                    break;
+
+                // kNumberSpacing
+                case 6:
+                    switch(featureSelectorIdentifierKey) {
+                        // kMonospacedNumbersSelector
+                        case 0:
+                            currentOptions.numberSpacing = 'monospaced'
+                            break;
+
+                        // kProportionalNumbersSelector
+                        case 1:
+                            currentOptions.numberSpacing = 'proportional'
+                            break;
+
+                        // kThirdWidthNumbersSelector
+                        case 2:
+                            logWarning("BetterTypeTool: Unsupported Number Spacing Feature - Third-width Numerals (Thin numerals)")
+                            break;
+
+                        // kQuarterWidthNumbersSelector
+                        case 3:
+                            logWarning("BetterTypeTool: Unsupported Number Spacing Feature - Quarter-width Numerals (Very Yhin Numerals")
+                            break;
+
+                        default:
+                            logWarning("BetterTypeTool: Unknown feature for Number Spacing")
+                            break;
+                    }
+                    break;
+
+                // kNumberCaseType
+                case 21:
+                    switch(featureSelectorIdentifierKey) {
+                        // kLowerCaseNumbersSelector
+                        case 0:
+                            currentOptions.numberCase = 'oldStyle'
+                            break;
+
+                        // kUpperCaseNumbersSelector
+                        case 1:
+                            currentOptions.numberCase = 'lining'
+                            break;
+
+                        default:
+                            logWarning("BetterTypeTool: Unknown feature for Number Case")
+                            break;
+                    }
+                    break;
+
+                // kLowerCase
+                case 37:
+                    switch(featureSelectorIdentifierKey) {
+                        // kDefaultLowerCaseSelector (aka OFF)
+                        case 0:
+                            currentOptions.smallCapsLowerCase = false
+                            break;
+
+                        // kLowerCaseSmallCapsSelector
+                        case 1:
+                            currentOptions.smallCapsLowerCase = true
+                            break;
+
+                        // kLowerCasePetiteCapsSelector
+                        case 2:
+                            logWarning("Unsupported Lower Case Small Caps Feature - Lower Case Petite Caps")
+                            break;
+
+                        default:
+                            logWarning("BetterTypeTool: Unknown feature for Lower Case Small Caps")
+                            break;
+                    }
+                    break;
+
+                // kUpperCase
+                case 38:
+                    switch(featureSelectorIdentifierKey) {
+                        // kDefaultUpperCaseSelector (aka OFF)
+                        case 0:
+                            currentOptions.smallCapsUpperCase = false
+                            break;
+
+                        // kUpperCaseSmallCapsSelector
+                        case 1:
+                            currentOptions.smallCapsUpperCase = true
+                            break;
+
+                        // kUpperCasePetiteCapsSelector
+                        case 2:
+                            logWarning("Unsupported Upper Case Small Caps Feature - Upper Case Petite Caps")
+                            break;
+
+                        default:
+                            logWarning("BetterTypeTool: Unknown feature for Upper Case Small Caps")
+                            break;
+                    }
+                    break;
+
+
+                // kStylisticAlternatives
+                case 35:
+                    switch(featureSelectorIdentifierKey) {
+                        // kStylisticAltFifteenOnSelector
+                        case 30:
+                            currentOptions.sfSymbolSize = 'small'
+                            break;
+
+                        // kStylisticAltFifteenOffSelector
+                        case 31:
+                            logWarning("WARNING: Unhandled Attempt to Set 15th Stylistic Alternative off")
+                            break;
+
+                        // kStylisticAltSixteenOnSelector
+                        case 32:
+                            currentOptions.sfSymbolSize = 'large'
+                            break;
+
+                        // kStylisticAltSixteenOffSelector
+                        case 33:
+                            logWarning("WARNING: Unhandled Attempt to Set 16th Stylistic Alternative off")
+                            break;
+                    }
+                    break;
+            }
+        })
+    }
+
+    return currentOptions
 }
