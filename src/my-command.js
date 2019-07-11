@@ -601,7 +601,7 @@ function setupPanel(threadDictionary, identifier) {
 }
 
 function addVibrancyView(superview) {
-    var vibrancy = NSView.alloc().initWithFrame(NSMakeRect(0, 0, panelWidth / 2.0, panelHeight))
+    var vibrancy = NSView.alloc().initWithFrame(NSMakeRect(0, 0, panelWidth, panelHeight))
     vibrancy.setBackgroundColor(NSColor.colorWithRed_green_blue_alpha(0.0,0.0,0.0,0.6))
     vibrancy.setWantsLayer(true)
 
