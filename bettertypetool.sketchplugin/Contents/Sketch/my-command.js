@@ -122,7 +122,6 @@ var radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle";
 var sfSymbolSizePopupButtonID = "com.betterTypePanel.popupButton.sfSymbolSize";
 var sfSymbolSizeRow = "com.betterTypePanel.row.sfSymbolSize";
 var vibrancyViewID = "com.betterTypePanel.vibrancy";
-var main;
 var panelWidth = 312;
 var panelHeight = 210;
 /* harmony default export */ __webpack_exports__["default"] = (function () {
@@ -135,7 +134,7 @@ var panelHeight = 210;
   // const features = CTFontCopyFeatures(coreTextFont)
   // const settings = CTFontCopyFeatureSettings(coreTextFont)
 
-  main = HSMain.alloc().init(); // var featuresArray = main.bridgeArray(features)
+  var main = HSMain.alloc().init(); // var featuresArray = main.bridgeArray(features)
   // var settingsArray = main.bridgeArray(settings)
 
   main.beginObservingTextViewSelectionChanges();
@@ -146,6 +145,7 @@ var panelHeight = 210;
   updateUI();
 });
 function shutdown() {
+  var main = HSMain.alloc().init();
   main.stopObservingTextViewSelectionChanges();
 }
 function selectionChanged(context) {
@@ -1458,8 +1458,6 @@ module.exports = require("sketch");
 /******/ });
   if (key === 'default' && typeof exports === 'function') {
     exports(context);
-  } else if (typeof exports[key] !== 'function') {
-    throw new Error('Missing export named "' + key + '". Your command should contain something like `export function " + key +"() {}`.');
   } else {
     exports[key](context);
   }
