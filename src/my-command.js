@@ -17,7 +17,6 @@ let radioButtonOldStyleFiguresID = "com.betterTypePanel.radioButton.oldStyle"
 let sfSymbolSizePopupButtonID = "com.betterTypePanel.popupButton.sfSymbolSize"
 let sfSymbolSizeRow = "com.betterTypePanel.row.sfSymbolSize"
 let vibrancyViewID = "com.betterTypePanel.vibrancy"
-let main
 var panelWidth = 312
 var panelHeight = 210
 
@@ -33,7 +32,7 @@ export default function() {
     // const features = CTFontCopyFeatures(coreTextFont)
     // const settings = CTFontCopyFeatureSettings(coreTextFont)
 
-    main = HSMain.alloc().init()
+    let main = HSMain.alloc().init()
     // var featuresArray = main.bridgeArray(features)
     // var settingsArray = main.bridgeArray(settings)
     main.beginObservingTextViewSelectionChanges()
@@ -47,6 +46,7 @@ export default function() {
 }
 
 export function shutdown() {
+    let main = HSMain.alloc().init()
     main.stopObservingTextViewSelectionChanges()
 }
 
