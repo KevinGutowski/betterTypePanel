@@ -46,6 +46,7 @@ export default function() {
 }
 
 export function shutdown() {
+    setupFramework()
     let main = HSMain.alloc().init()
     main.stopObservingTextViewSelectionChanges()
 }
@@ -74,7 +75,7 @@ export function textChanged() {
 }
 
 function setupFramework() {
-    // var HelloSketch_FrameworkPath = HelloSketch_FrameworkPath || COScript.currentCOScript().env().scriptURL.path().stringByDeletingLastPathComponent();
+    var HelloSketch_FrameworkPath = HelloSketch_FrameworkPath || COScript.currentCOScript().env().scriptURL.path().stringByDeletingLastPathComponent();
     var scriptPath = COScript.currentCOScript().env().scriptURL.path()
     var HelloSketch_FrameworkPath = scriptPath
         .stringByDeletingLastPathComponent()
@@ -1067,7 +1068,7 @@ function disableUI(threadDictionary, optionsToDisableArray = ['all']) {
 
 function closePanel(panel, threadDictionary, threadIdentifier) {
         panel.close()
-
+        setupFramework()
         let main = HSMain.alloc().init()
         // Stop text selection listening
         main.stopObservingTextViewSelectionChanges()
@@ -1221,6 +1222,7 @@ function checkToShowSFSymbolOption(font) {
 
 function getOptionsToDisableFromFont(font) {
     framework('CoreText')
+    setupFramework()
     let main = HSMain.alloc().init()
 
     const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null)
