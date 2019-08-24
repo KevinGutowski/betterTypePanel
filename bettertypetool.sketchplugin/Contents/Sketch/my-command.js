@@ -125,7 +125,6 @@ var panelWidth = 312;
 var panelHeight = 210;
 /* harmony default export */ __webpack_exports__["default"] = (function () {
   runPanel();
-  console.log("Attempting to setup framework in default function");
   setupFramework();
   framework("CoreText");
   var main = HSMain.alloc().init();
@@ -142,7 +141,7 @@ function shutdown() {
     var main = HSMain.alloc().init();
     main.stopObservingTextViewSelectionChanges();
   } catch (error) {
-    console.log(error);
+    console.error(error);
   }
 }
 function selectionChanged(context) {
@@ -168,11 +167,8 @@ function textChanged() {
 }
 
 function setupFramework() {
-  var HelloSketch_FrameworkPath = HelloSketch_FrameworkPath || COScript.currentCOScript().env().scriptURL.path().stringByDeletingLastPathComponent();
   var scriptPath = COScript.currentCOScript().env().scriptURL.path();
-  console.log(scriptPath);
   var HelloSketch_FrameworkPath = scriptPath.stringByDeletingLastPathComponent().stringByDeletingLastPathComponent() + "/Resources";
-  console.log(HelloSketch_FrameworkPath);
   var HelloSketch_Log = HelloSketch_Log || log;
 
   (function () {
@@ -181,14 +177,14 @@ function setupFramework() {
     var directory = HelloSketch_FrameworkPath;
 
     if (mocha.valueForKey(frameworkName)) {
-      HelloSketch_Log("😎 loadFramework: `" + frameworkName + "` already loaded.");
+      //HelloSketch_Log("😎 betterTypePanel loadFramework: `" + frameworkName + "` already loaded.");
       return true;
     } else if (mocha.loadFrameworkWithName_inDirectory(frameworkName, directory)) {
-      HelloSketch_Log("✅ loadFramework: `" + frameworkName + "` success!");
+      //HelloSketch_Log("✅ betterTypePanel loadFramework: `" + frameworkName + "` success!");
       mocha.setValue_forKey_(true, frameworkName);
       return true;
     } else {
-      HelloSketch_Log("❌ loadFramework: `" + frameworkName + "` failed!: " + directory + ". Please define HelloSketch_FrameworkPath if you're trying to @import in a custom plugin");
+      HelloSketch_Log("❌ betterTypePanel loadFramework: `" + frameworkName + "` failed!: " + directory + ". Please define HelloSketch_FrameworkPath if you're trying to @import in a custom plugin - scriptPath: " + scriptPath);
       return false;
     }
   })();
@@ -1040,7 +1036,6 @@ function closePanel(panel, threadDictionary, threadIdentifier) {
   panel.close();
 
   try {
-    console.log("Attempting to setup framework in closePanel");
     setupFramework();
     var main = HSMain.alloc().init(); // Stop text selection listening
 
