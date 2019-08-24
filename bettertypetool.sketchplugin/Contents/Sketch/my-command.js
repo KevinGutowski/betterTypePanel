@@ -166,7 +166,7 @@ function textChanged() {
 }
 
 function setupFramework() {
-  var scriptPath = COScript.currentCOScript().env().scriptURL.path();
+  var scriptPath = context.scriptPath || COScript.currentCOScript().env().scriptURL.path();
   var HelloSketch_FrameworkPath = scriptPath.stringByDeletingLastPathComponent().stringByDeletingLastPathComponent() + "/Resources";
   var HelloSketch_Log = HelloSketch_Log || log;
 
@@ -190,7 +190,6 @@ function setupFramework() {
 }
 
 function runPanel() {
-  // console.log("Setting Up Panel")
   var threadDictionary = NSThread.mainThread().threadDictionary(); // If there is already a panel, close it
 
   if (threadDictionary[threadIdentifier]) {
@@ -1040,7 +1039,7 @@ function closePanel(panel, threadDictionary, threadIdentifier) {
 
     main.stopObservingTextViewSelectionChanges();
   } catch (error) {
-    console.log(error);
+    console.error(error);
   } // Remove the reference to the panel
 
 
@@ -1181,12 +1180,19 @@ function checkToShowSFSymbolOption(font) {
 
 function getOptionsToDisableFromFont(font) {
   framework('CoreText');
-  setupFramework();
-  var main = HSMain.alloc().init();
-  var coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null);
-  var features = CTFontCopyFeatures(coreTextFont);
-  var featuresArray = main.bridgeArray(features);
-  var optionsToDisableForFont = getOptionsToDisableFromFeaturesArray(featuresArray);
+  var optionsToDisableForFont = [];
+
+  try {
+    setupFramework();
+    var main = HSMain.alloc().init();
+    var coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null);
+    var features = CTFontCopyFeatures(coreTextFont);
+    var featuresArray = main.bridgeArray(features);
+    optionsToDisableForFont = getOptionsToDisableFromFeaturesArray(featuresArray);
+  } catch (e) {
+    console.error(e);
+  }
+
   var familyName = font.familyName().toLowerCase().trim();
   var supportedFontFamilies = ["sf pro text", "sf pro rounded", "sf pro display", "sf compact text", "sf compact rounded", "sf compact display"];
 

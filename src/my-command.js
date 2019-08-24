@@ -68,7 +68,7 @@ export function textChanged() {
 }
 
 function setupFramework() {
-    var scriptPath = COScript.currentCOScript().env().scriptURL.path()
+    var scriptPath = context.scriptPath || COScript.currentCOScript().env().scriptURL.path()
     var HelloSketch_FrameworkPath = scriptPath.stringByDeletingLastPathComponent().stringByDeletingLastPathComponent() + "/Resources"
     var HelloSketch_Log = HelloSketch_Log || log;
     (function() {
@@ -90,7 +90,6 @@ function setupFramework() {
 }
 
 function runPanel() {
-    // console.log("Setting Up Panel")
     let threadDictionary = NSThread.mainThread().threadDictionary()
 
     // If there is already a panel, close it
@@ -100,7 +99,6 @@ function runPanel() {
         threadDictionary.panelOpen = true
         setupPanel(threadDictionary, threadIdentifier)
     }
-
 }
 
 function setupPanel(threadDictionary, identifier) {
@@ -1058,7 +1056,7 @@ function closePanel(panel, threadDictionary, threadIdentifier) {
             // Stop text selection listening
             main.stopObservingTextViewSelectionChanges()
         } catch(error) {
-            console.log(error);
+            console.error(error);
         }
 
         // Remove the reference to the panel
@@ -1183,6 +1181,7 @@ function checkToShowSFSymbolOption(font) {
     let threadDictionary = NSThread.mainThread().threadDictionary()
     let row5 = threadDictionary[sfSymbolSizeRow]
     let panel = threadDictionary[threadIdentifier]
+
     let panelX = panel.frame().origin.x
     let panelY = panel.frame().origin.y
     let panelWidth = panel.frame().size.height
@@ -1210,14 +1209,20 @@ function checkToShowSFSymbolOption(font) {
 
 function getOptionsToDisableFromFont(font) {
     framework('CoreText')
-    setupFramework()
-    let main = HSMain.alloc().init()
+    let optionsToDisableForFont = []
 
-    const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null)
-    const features = CTFontCopyFeatures(coreTextFont)
-    let featuresArray = main.bridgeArray(features)
+    try {
+        setupFramework()
+        let main = HSMain.alloc().init()
 
-    let optionsToDisableForFont = getOptionsToDisableFromFeaturesArray(featuresArray)
+        const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null)
+        const features = CTFontCopyFeatures(coreTextFont)
+        let featuresArray = main.bridgeArray(features)
+
+        optionsToDisableForFont = getOptionsToDisableFromFeaturesArray(featuresArray)
+    } catch (e) {
+        console.error(e)
+    }
 
     let familyName = font.familyName().toLowerCase().trim()
     let supportedFontFamilies = [
