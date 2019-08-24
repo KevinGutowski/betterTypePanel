@@ -6,7 +6,6 @@ import sketch from 'sketch'
 COScript.currentCOScript().setShouldKeepAround_(true)
 
 let threadIdentifier = "com.betterTypePanel"
-let panelID = "com.betterTypePanel.panel"
 let verticalPositionPopupButtonID = "com.betterTypePanel.popupButton.verticalPosition"
 let radioButtonProportionalID = "com.betterTypePanel.radioButton.proportional"
 let radioButtonMonospacedOrTabularID = "com.betterTypePanel.radioButton.monospaced"
@@ -25,30 +24,24 @@ export default function() {
 
     setupFramework()
     framework("CoreText");
-    // const document = sketch.getSelectedDocument();
-    // const textLayer = document.selectedLayers.layers[0]
-    // const font = textLayer.sketchObject.font()
-    // const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), nil);
-    // const features = CTFontCopyFeatures(coreTextFont)
-    // const settings = CTFontCopyFeatureSettings(coreTextFont)
 
     let main = HSMain.alloc().init()
-    // var featuresArray = main.bridgeArray(features)
-    // var settingsArray = main.bridgeArray(settings)
     main.beginObservingTextViewSelectionChanges()
     main.setCallbackForTextViewSelectionChange(() => {
         updateUI()
     })
 
-    //determineProps(featuresArray);
-
     updateUI()
 }
 
 export function shutdown() {
-    setupFramework()
-    let main = HSMain.alloc().init()
-    main.stopObservingTextViewSelectionChanges()
+    try {
+        setupFramework()
+        let main = HSMain.alloc().init()
+        main.stopObservingTextViewSelectionChanges()
+    } catch (error) {
+        console.error(error)
+    }
 }
 
 export function selectionChanged(context) {
@@ -75,49 +68,37 @@ export function textChanged() {
 }
 
 function setupFramework() {
-    var HelloSketch_FrameworkPath = HelloSketch_FrameworkPath || COScript.currentCOScript().env().scriptURL.path().stringByDeletingLastPathComponent();
-    var scriptPath = COScript.currentCOScript().env().scriptURL.path()
-    var HelloSketch_FrameworkPath = scriptPath
-        .stringByDeletingLastPathComponent()
-        .stringByDeletingLastPathComponent()
-        .stringByDeletingLastPathComponent()
-        .stringByDeletingLastPathComponent()
-        + "/src";
+    var scriptPath = context.scriptPath || COScript.currentCOScript().env().scriptURL.path()
+    var HelloSketch_FrameworkPath = scriptPath.stringByDeletingLastPathComponent().stringByDeletingLastPathComponent() + "/Resources"
     var HelloSketch_Log = HelloSketch_Log || log;
     (function() {
         var mocha = Mocha.sharedRuntime();
         var frameworkName = "HelloSketch";
         var directory = HelloSketch_FrameworkPath;
         if (mocha.valueForKey(frameworkName)) {
-            // HelloSketch_Log("😎 loadFramework: `" + frameworkName + "` already loaded.");
+            //HelloSketch_Log("😎 betterTypePanel loadFramework: `" + frameworkName + "` already loaded.");
             return true;
         } else if (mocha.loadFrameworkWithName_inDirectory(frameworkName, directory)) {
-            // HelloSketch_Log("✅ loadFramework: `" + frameworkName + "` success!");
+            //HelloSketch_Log("✅ betterTypePanel loadFramework: `" + frameworkName + "` success!");
             mocha.setValue_forKey_(true, frameworkName);
             return true;
         } else {
-            // HelloSketch_Log("❌ loadFramework: `" + frameworkName + "` failed!: " + directory + ". Please define HelloSketch_FrameworkPath if you're trying to @import in a custom plugin");
+            HelloSketch_Log("❌ betterTypePanel loadFramework: `" + frameworkName + "` failed!: " + directory + ". Please define HelloSketch_FrameworkPath if you're trying to @import in a custom plugin - scriptPath: " + scriptPath);
             return false;
         }
     })();
 }
 
-function determineProps(featuresArray) {
-
-}
-
 function runPanel() {
-    // console.log("Setting Up Panel")
     let threadDictionary = NSThread.mainThread().threadDictionary()
 
-    // If there is already a panel, prevent the plugin from running again
+    // If there is already a panel, close it
     if (threadDictionary[threadIdentifier]) {
         closePanel(threadDictionary[threadIdentifier], threadDictionary, threadIdentifier)
     } else {
         threadDictionary.panelOpen = true
         setupPanel(threadDictionary, threadIdentifier)
     }
-
 }
 
 function setupPanel(threadDictionary, identifier) {
@@ -133,7 +114,7 @@ function setupPanel(threadDictionary, identifier) {
     panel.standardWindowButton(NSWindowMiniaturizeButton).setHidden(true)
     panel.standardWindowButton(NSWindowZoomButton).setHidden(true)
 
-    threadDictionary[panelID] = panel
+    threadDictionary[identifier] = panel
 
     const column1width = 109
     const column2width = 171
@@ -1068,10 +1049,15 @@ function disableUI(threadDictionary, optionsToDisableArray = ['all']) {
 
 function closePanel(panel, threadDictionary, threadIdentifier) {
         panel.close()
-        setupFramework()
-        let main = HSMain.alloc().init()
-        // Stop text selection listening
-        main.stopObservingTextViewSelectionChanges()
+
+        try {
+            setupFramework()
+            let main = HSMain.alloc().init()
+            // Stop text selection listening
+            main.stopObservingTextViewSelectionChanges()
+        } catch(error) {
+            console.error(error);
+        }
 
         // Remove the reference to the panel
         threadDictionary.removeObjectForKey(threadIdentifier)
@@ -1194,7 +1180,8 @@ function checkToShowSFSymbolOption(font) {
 
     let threadDictionary = NSThread.mainThread().threadDictionary()
     let row5 = threadDictionary[sfSymbolSizeRow]
-    let panel = threadDictionary[panelID]
+    let panel = threadDictionary[threadIdentifier]
+
     let panelX = panel.frame().origin.x
     let panelY = panel.frame().origin.y
     let panelWidth = panel.frame().size.height
@@ -1222,14 +1209,20 @@ function checkToShowSFSymbolOption(font) {
 
 function getOptionsToDisableFromFont(font) {
     framework('CoreText')
-    setupFramework()
-    let main = HSMain.alloc().init()
+    let optionsToDisableForFont = []
 
-    const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null)
-    const features = CTFontCopyFeatures(coreTextFont)
-    let featuresArray = main.bridgeArray(features)
+    try {
+        setupFramework()
+        let main = HSMain.alloc().init()
 
-    let optionsToDisableForFont = getOptionsToDisableFromFeaturesArray(featuresArray)
+        const coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null)
+        const features = CTFontCopyFeatures(coreTextFont)
+        let featuresArray = main.bridgeArray(features)
+
+        optionsToDisableForFont = getOptionsToDisableFromFeaturesArray(featuresArray)
+    } catch (e) {
+        console.error(e)
+    }
 
     let familyName = font.familyName().toLowerCase().trim()
     let supportedFontFamilies = [

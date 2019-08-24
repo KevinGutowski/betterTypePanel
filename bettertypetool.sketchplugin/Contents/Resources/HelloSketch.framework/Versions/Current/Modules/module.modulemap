@@ -1,0 +1,6 @@
+framework module HelloSketch {
+  umbrella header "HelloSketch.h"
+
+  export *
+  module * { export * }
+}
