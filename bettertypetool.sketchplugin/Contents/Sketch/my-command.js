@@ -1181,7 +1181,6 @@ function checkToShowSFSymbolOption(font) {
 
 function getOptionsToDisableFromFont(font) {
   framework('CoreText');
-  console.log("Attempting to setup framework in getOptionsToDisableFromFont");
   setupFramework();
   var main = HSMain.alloc().init();
   var coreTextFont = CTFontCreateWithName(font.fontName(), font.pointSize(), null);
