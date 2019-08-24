@@ -136,7 +136,6 @@ var panelHeight = 210;
 });
 function shutdown() {
   try {
-    console.log("Attempting to setup framework on shutdown");
     setupFramework();
     var main = HSMain.alloc().init();
     main.stopObservingTextViewSelectionChanges();

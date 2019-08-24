@@ -36,7 +36,6 @@ export default function() {
 
 export function shutdown() {
     try {
-        console.log("Attempting to setup framework on shutdown")
         setupFramework()
         let main = HSMain.alloc().init()
         main.stopObservingTextViewSelectionChanges()
